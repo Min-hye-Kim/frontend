@@ -11,5 +11,5 @@
 
 
 ## ✅ 체크 리스트
-- [] main 브랜치 pull 완료
-- [] Assignees 설정
+- [ ] main 브랜치 pull 완료
+- [ ] Assignees 설정
