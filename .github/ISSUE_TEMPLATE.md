@@ -1,3 +1,11 @@
+---
+name: Issue Template
+about: 이슈 템플릿입니다.
+title: 예시) BottomNavigation
+labels: ''
+assignees: ''
+---
+
 ## 📝 작업 개요
 - 작업개요
 
