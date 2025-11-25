@@ -270,7 +270,6 @@ const AccountbookPage = () => {
       if (response && response.message) {
         handleCloseModal();
         await fetchAllData();
-        handleCloseModal();
       }
     } catch (error) {
       console.error("거래내역 삭제 실패", error);
