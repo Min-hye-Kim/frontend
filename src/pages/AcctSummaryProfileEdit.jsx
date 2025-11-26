@@ -490,9 +490,15 @@ const AcctSummaryProfileEdit = () => {
                 )}
               </CategoryLabel>
               <CategoryGrid>
-                {categoryData.map((category) => (
-                  <CategoryCard key={category.code} categoryData={category} />
-                ))}
+                {summaryData &&
+                  summaryData.categories &&
+                  summaryData.categories.map((category) => (
+                    <CategoryCard
+                      key={category.code}
+                      categoryData={category}
+                      showBudgetStatus={false}
+                    />
+                  ))}
               </CategoryGrid>
             </CategorySection>
 
@@ -518,6 +524,7 @@ const AcctSummaryProfileEdit = () => {
               </BasicCostLabel>
               <BasicCostGrid>
                 {summaryData &&
+                  summaryData.base_dispatch_cost &&
                   [
                     {
                       code: "flight",
@@ -544,7 +551,11 @@ const AcctSummaryProfileEdit = () => {
                       budget_diff: null,
                     },
                   ].map((cost) => (
-                    <CategoryCard key={cost.code} categoryData={cost} />
+                    <CategoryCard
+                      key={cost.code}
+                      categoryData={cost}
+                      showBudgetStatus={false}
+                    />
                   ))}
               </BasicCostGrid>
             </BasicCostSection>
@@ -552,18 +563,22 @@ const AcctSummaryProfileEdit = () => {
         </Section2>
         {/* ————————————————————— 한줄평 ————————————————————— */}
 
-        {formData.summary_note && (
-          <Section3>
-            <Section3Header>
-              <TitleWrapper>
-                <Username>{profile?.name || "사용자"}</Username>
-                <SectionTitle>님이 남긴 한 마디</SectionTitle>
-              </TitleWrapper>
-              <OptionalNotice>* 선택입력</OptionalNotice>
-            </Section3Header>
+        <Section3>
+          <Section3Header>
+            <TitleWrapper>
+              <Username>{profile?.name || "사용자"}</Username>
+              <SectionTitle>님이 남긴 한 마디</SectionTitle>
+            </TitleWrapper>
+            <OptionalNotice>* 선택입력</OptionalNotice>
+          </Section3Header>
+          {formData.summary_note ? (
             <DisplayNote>{formData.summary_note}</DisplayNote>
-          </Section3>
-        )}
+          ) : (
+            <DisplayNote style={{ color: "var(--gray, #a5a5a5)" }}>
+              한 마디를 남겨보세요!
+            </DisplayNote>
+          )}
+        </Section3>
       </ContentWrapper>
 
       {/* —————————————————————————— 모달 —————————————————————————— */}
@@ -884,7 +899,7 @@ const CategoryAmount = styled.span`
 
 const CategoryGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   padding: 0 1rem 1rem 1rem;
   width: 90%;

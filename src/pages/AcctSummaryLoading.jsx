@@ -10,7 +10,7 @@ const AcctSummaryLoading = () => {
   useEffect(() => {
     // 2초 후 세부 프로필 입력 페이지로 이동
     const timer = setTimeout(() => {
-      navigate("/summary/upload");
+      navigate("/summaries/loading");
     }, 2000);
 
     return () => clearTimeout(timer);

@@ -22,12 +22,12 @@ const AcctSummaryPage = () => {
         setLoading(true);
 
         const profileResponse = await getSnapshot();
-        if (profileResponse.status === "success" && profileResponse.data) {
+        if (profileResponse && profileResponse.data) {
           setProfileData(profileResponse.data);
         }
 
         const summaryResponse = await getLedgerSummary();
-        if (summaryResponse.status === "success" && summaryResponse.data) {
+        if (summaryResponse && summaryResponse.data) {
           setSummaryData(summaryResponse.data);
         }
 
@@ -151,82 +151,83 @@ const AcctSummaryPage = () => {
                 ₩{parseInt(profileData.monthly_spend_in_korea).toLocaleString()}
               </DisplayValue>
             </FormRow>
-            {profileData.meal_frequency && (
-              <FormRow>
-                <Label>식사</Label>
+
+            <FormRow>
+              <Label>식사</Label>
+              {profileData.meal_frequency && (
                 <DisplayValue>
                   {getMealFrequencyText(profileData.meal_frequency)}
                 </DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.dineout_per_week && (
-              <FormRow>
-                <Label>외식 및 배달음식 소비</Label>
+            <FormRow>
+              <Label>외식 및 배달음식 소비</Label>
+              {profileData.dineout_per_week && (
                 <DisplayValue>주 {profileData.dineout_per_week}회</DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.coffee_per_week && (
-              <FormRow>
-                <Label>커피 등 음료 소비</Label>
+            <FormRow>
+              <Label>커피 등 음료 소비</Label>
+              {profileData.coffee_per_week && (
                 <DisplayValue>주 {profileData.coffee_per_week}회</DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.smoking_per_day !== null &&
-              profileData.smoking_per_day !== undefined && (
-                <FormRow>
-                  <Label>흡연</Label>
+            <FormRow>
+              <Label>흡연</Label>
+              {profileData.smoking_per_day !== null &&
+                profileData.smoking_per_day !== undefined && (
                   <DisplayValue>
                     하루 {profileData.smoking_per_day}회
                   </DisplayValue>
-                </FormRow>
-              )}
+                )}
+            </FormRow>
 
-            {profileData.drinking_per_week && (
-              <FormRow>
-                <Label>음주</Label>
+            <FormRow>
+              <Label>음주</Label>
+              {profileData.drinking_per_week && (
                 <DisplayValue>
                   주 {profileData.drinking_per_week}회
                 </DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.shopping_per_month && (
-              <FormRow>
-                <Label>쇼핑</Label>
+            <FormRow>
+              <Label>쇼핑</Label>
+              {profileData.shopping_per_month && (
                 <DisplayValue>
                   월 {profileData.shopping_per_month}회
                 </DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.culture_per_month && (
-              <FormRow>
-                <Label>여가 및 문화생활 소비</Label>
+            <FormRow>
+              <Label>여가 및 문화생활 소비</Label>
+              {profileData.culture_per_month && (
                 <DisplayValue>
                   월 {profileData.culture_per_month}회
                 </DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.residence_type && (
-              <FormRow>
-                <Label>거주유형</Label>
+            <FormRow>
+              <Label>거주유형</Label>
+              {profileData.residence_type && (
                 <DisplayValue>{profileData.residence_type}</DisplayValue>
-              </FormRow>
-            )}
+              )}
+            </FormRow>
 
-            {profileData.commute !== null &&
-              profileData.commute !== undefined && (
-                <FormRow>
-                  <Label>통학 여부</Label>
+            <FormRow>
+              <Label>통학 여부</Label>
+              {profileData.commute !== null &&
+                profileData.commute !== undefined && (
                   <DisplayValue>
                     {getCommuteText(profileData.commute)}
                   </DisplayValue>
-                </FormRow>
-              )}
+                )}
+            </FormRow>
           </FormGrid>
         </Section1>
 
@@ -260,7 +261,11 @@ const AcctSummaryPage = () => {
               </CategoryLabel>
               <CategoryGrid>
                 {summaryData.categories.map((category) => (
-                  <CategoryCard key={category.code} categoryData={category} />
+                  <CategoryCard
+                    key={category.code}
+                    categoryData={category}
+                    showBudgetStatus={false}
+                  />
                 ))}
               </CategoryGrid>
             </CategorySection>
@@ -306,7 +311,11 @@ const AcctSummaryPage = () => {
                     ...summaryData.base_dispatch_cost.tuition,
                   },
                 ].map((cost) => (
-                  <CategoryCard key={cost.code} categoryData={cost} />
+                  <CategoryCard
+                    key={cost.code}
+                    categoryData={cost}
+                    showBudgetStatus={false}
+                  />
                 ))}
               </BasicCostGrid>
             </BasicCostSection>
@@ -314,15 +323,19 @@ const AcctSummaryPage = () => {
         </Section2>
 
         {/* ————————————————————— 한줄평 ————————————————————— */}
-        {profileData.summary_note && (
-          <Section3>
-            <TitleWrapper>
-              <Username>{profile?.name || "사용자"}</Username>
-              <SectionTitle>님이 남긴 한 마디</SectionTitle>
-            </TitleWrapper>
+        <Section3>
+          <TitleWrapper>
+            <Username>{profile?.name || "사용자"}</Username>
+            <SectionTitle>님이 남긴 한 마디</SectionTitle>
+          </TitleWrapper>
+          {profileData.summary_note ? (
             <DisplayNote>{profileData.summary_note}</DisplayNote>
-          </Section3>
-        )}
+          ) : (
+            <DisplayNote style={{ color: "var(--gray, #a5a5a5)" }}>
+              아직 작성된 한 마디가 없습니다.
+            </DisplayNote>
+          )}
+        </Section3>
       </ContentWrapper>
     </PageWrapper>
   );
@@ -620,7 +633,7 @@ const CategoryAmount = styled.span`
 
 const CategoryGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   padding: 0 1rem 1rem 1rem;
   width: 90%;
@@ -687,3 +700,4 @@ const DisplayNote = styled.div`
   font-size: 0.925rem;
   font-weight: 500;
 `;
+  

@@ -27,7 +27,7 @@ const AcctSummaryProfileData = () => {
     try {
       setLoading(true);
       const response = await getLedgerSummary();
-      if (response.status === "success" && response.data) {
+      if (response && response.data) {
         setSummaryData(response.data);
         setCategoryData(response.data.categories || []);
       }
@@ -40,7 +40,7 @@ const AcctSummaryProfileData = () => {
 
   const [formData, setFormData] = useState({
     monthly_spend_in_korea: "",
-    meal_frequency: "", 
+    meal_frequency: "",
     dineout_per_week: "",
     coffee_per_week: "",
     smoking_per_day: "",
@@ -48,7 +48,7 @@ const AcctSummaryProfileData = () => {
     shopping_per_month: "",
     culture_per_month: "",
     residence_type: "",
-    commute: null, // 
+    commute: null, //
     summary_note: "",
   });
 
@@ -110,13 +110,20 @@ const AcctSummaryProfileData = () => {
         requestData.summary_note = formData.summary_note;
       }
       const response = await createSnapshot(requestData);
-      if (response.status === "success") {
+      if (response && response.data) {
         // 성공하면? AcctSummaryComplete 페이지로 ㄱㄱ
         navigate("/summaries/complete");
       }
     } catch (error) {
       console.error("Error publishing summary:", error);
-      alert(error.message || "게시 중 오류가 발생했습니다.");
+      if (
+        error.message &&
+        error.message.includes("이미 세부 프로필이 존재합니다")
+      ) {
+        navigate("/summaries/snapshot");
+      } else {
+        alert(error.message || "게시 중 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -456,7 +463,11 @@ const AcctSummaryProfileData = () => {
               </CategoryHeader>
               <CategoryGrid>
                 {categoryData.map((category) => (
-                  <CategoryCard key={category.code} categoryData={category} />
+                  <CategoryCard
+                    key={category.code}
+                    categoryData={category}
+                    showBudgetStatus={false}
+                  />
                 ))}
               </CategoryGrid>
             </CategorySection>
@@ -509,7 +520,11 @@ const AcctSummaryProfileData = () => {
                       budget_diff: null,
                     },
                   ].map((cost) => (
-                    <CategoryCard key={cost.code} categoryData={cost} />
+                    <CategoryCard
+                      key={cost.code}
+                      categoryData={cost}
+                      showBudgetStatus={false}
+                    />
                   ))}
               </BasicCostGrid>
             </BasicCostSection>
@@ -836,7 +851,7 @@ const CategoryAmount = styled.span`
 
 const CategoryGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   padding: 0 1rem 1rem 1rem;
   width: 90%;
