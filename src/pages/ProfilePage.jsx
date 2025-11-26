@@ -6,7 +6,7 @@ import SearchDropdown from "../components/SearchDropdown";
 import Dropdown from "../components/Dropdown";
 import Spinner from '../components/Spinner';
 import { useDropdownData, useProfile } from "@/hooks";
-import { ProfileAPI } from "@/apis";
+import { ProfileAPI, SummariesAPI } from "@/apis";
 
 // 프로필 페이지용 인풋 스타일
 const profileInputStyle = {
@@ -17,6 +17,7 @@ const profileInputStyle = {
 }
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const { profile, setProfile } = useProfile();
 
   // 커스텀 훅으로 드롭다운 데이터 관리
@@ -75,8 +76,6 @@ const ProfilePage = () => {
     );
   }
 
-  const country = profile.exchange_country;
-
   // build flag src safely (encode in case of non-ascii names)
   const flagSrc = `/images/flags/${encodeURIComponent(profile.exchange_country)}.png`;
 
@@ -119,8 +118,15 @@ const ProfilePage = () => {
     } catch (err) {
       console.error(err);
       alert("프로필 업데이트 실패");
-}
+    }
   };
+
+  const onMySum = async () => {
+    const mySumData = await SummariesAPI.getSnapshot();
+    const id = mySumData.data.id;
+
+    navigate(`/summaries/snapshot/${id}`);
+  }
 
   return(
     <Wrapper>
@@ -236,7 +242,7 @@ const ProfilePage = () => {
             </>
           )}
         </Box>
-        <Button>
+        <Button onClick={onMySum}>
           <h3>내 게시글 바로가기</h3>
           <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
             <path d="M24.9127 14.6189L15.9585 23.5731C15.6539 23.8777 15.5065 24.233 15.5162 24.6391C15.526 25.0452 15.6835 25.4005 15.9889 25.7051C16.2943 26.0097 16.6496 26.162 17.0549 26.162C17.4602 26.162 17.8155 26.0097 18.1209 25.7051L27.5015 16.3549C27.7452 16.1113 27.9279 15.8372 28.0497 15.5326C28.1716 15.228 28.2325 14.9235 28.2325 14.6189C28.2325 14.3143 28.1716 14.0098 28.0497 13.7052C27.9279 13.4006 27.7452 13.1265 27.5015 12.8829L18.1209 3.50225C17.8163 3.19769 17.4557 3.05028 17.0391 3.06002C16.6224 3.06977 16.2622 3.22733 15.9585 3.53271C15.6547 3.83809 15.5024 4.19341 15.5016 4.59869C15.5008 5.00397 15.6531 5.35929 15.9585 5.66467L24.9127 14.6189Z" fill="#A5A5A5"/>

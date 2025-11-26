@@ -132,9 +132,7 @@ const Feed = ({
   };
 
   const handleFeedClick = () => {
-    // 피드 클릭 시 페이지 이동 로직
-    console.log("Feed clicked!");
-    // navigate('/feed-detail'); // 예시
+    navigate(`/summaries/snapshot/${id}`);
   };
 
   const flagSrc = `/images/flags/${encodeURIComponent(country)}.png`;

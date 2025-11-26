@@ -165,7 +165,7 @@ const TransactionItem = ({ transaction, onClick }) => {
       JPY: "¥",
       GBP: "£",
       CNY: "¥",
-      CAD: "CA$",
+      CAD: "C$",
       TWD: "NT$",
     };
     return symbols[code] || code;

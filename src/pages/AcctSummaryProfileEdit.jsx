@@ -215,6 +215,7 @@ const AcctSummaryProfileEdit = () => {
               <Label>한국에서의 월 지출</Label>
               <InputWrapper>
                 <Inputfield
+                  customStyle={`height: 2.3rem; font-size: 0.8rem;`}
                   type="number"
                   placeholder="금액을 입력해주세요"
                   value={formData.monthly_spend_in_korea}
@@ -386,9 +387,7 @@ const AcctSummaryProfileEdit = () => {
               <Label>거주유형</Label>
               <InputWrapper>
                 <Inputfield
-                  customStyle={`
-                    color: var(--black, #000);
-                  `}
+                  customStyle={`height: 2.3rem; font-size: 0.8rem;`}
                   type="text"
                   placeholder="거주 유형을 직접 입력해주세요"
                   value={formData.residence_type}
@@ -613,7 +612,6 @@ export default AcctSummaryProfileEdit;
 const PageWrapper = styled.div`
   min-height: 100vh;
   background: var(--white, #ffffff);
-  padding-top: 5.5rem;
 `;
 
 const ContentWrapper = styled.div`
@@ -861,7 +859,7 @@ const EntireGrid = styled.section`
   justify-content: center;
   align-items: center;
 
-  border-radius: 0.625rem;
+  border-radius: 1.07813rem;
   border: 1px solid var(--light-gray, #d9d9d9);
 
   margin: 0;
@@ -963,7 +961,7 @@ const DisplayNote = styled.div`
   width: 100%;
   min-height: 3.55456rem;
   text-align: left;
-  padding: 1rem;
+  padding: 3.6rem;
   border-radius: 1.177rem;
   border: 1px solid var(--light-gray, #d9d9d9);
   background: var(--text-input, #fcfcfc);

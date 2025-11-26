@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import { BudgetAPI } from "@/apis";
 import currencySymbolMap from "@/utils/currencySymbolMap";
 import { currencyDropdownOptions } from "@/utils/currencySymbolMap";
+import { useProfile } from "@/hooks";
 
 const MAX_INT = 2147483647;
 
@@ -61,6 +62,8 @@ const BudgetPage = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [modalMissing, setModalMissing] = useState([]);
+
+  const { profile, setProfile } = useProfile();
 
   useEffect(() => {
     const loadBudget = async () => {
@@ -532,7 +535,9 @@ const BudgetPage = () => {
                     <span className="body1">원</span>
                   </CostInput>
                   <DeleteButton onClick={() => removeCustomItem(index)}>
-                    ✕
+                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="23" viewBox="0 0 21 23" fill="none">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M11.7172 2.34375H8.59219C8.38499 2.34375 8.18627 2.42606 8.03976 2.57257C7.89325 2.71909 7.81094 2.9178 7.81094 3.125V3.90625H12.4984V3.125C12.4984 2.9178 12.4161 2.71909 12.2696 2.57257C12.1231 2.42606 11.9244 2.34375 11.7172 2.34375ZM14.8422 3.90625V3.125C14.8422 2.2962 14.5129 1.50134 13.9269 0.915291C13.3408 0.32924 12.546 0 11.7172 0H8.59219C7.76339 0 6.96853 0.32924 6.38248 0.915291C5.79643 1.50134 5.46719 2.2962 5.46719 3.125V3.90625H1.17187C0.861074 3.90625 0.563003 4.02972 0.343234 4.24948C0.123465 4.46925 0 4.76732 0 5.07812C0 5.38893 0.123465 5.687 0.343234 5.90677C0.563003 6.12653 0.861074 6.25 1.17187 6.25H1.65937L2.15469 18.1641C2.20509 19.3726 2.72068 20.5148 3.59368 21.352C4.46669 22.1892 5.62951 22.6565 6.83906 22.6562H13.4719C14.6812 22.6561 15.8436 22.1886 16.7163 21.3514C17.5889 20.5143 18.1043 19.3723 18.1547 18.1641L18.6516 6.25H19.1391C19.4499 6.25 19.7479 6.12653 19.9677 5.90677C20.1875 5.687 20.3109 5.38893 20.3109 5.07812C20.3109 4.76732 20.1875 4.46925 19.9677 4.24948C19.7479 4.02972 19.4499 3.90625 19.1391 3.90625H14.8422ZM16.3047 6.25H4.00469L4.49688 18.0656C4.52188 18.67 4.77959 19.2413 5.21611 19.6601C5.65263 20.0788 6.23416 20.3126 6.83906 20.3125H13.4719C14.0765 20.3122 14.6576 20.0783 15.0938 19.6595C15.53 19.2408 15.7875 18.6697 15.8125 18.0656L16.3047 6.25ZM6.63906 9.375V17.1875C6.63906 17.4983 6.76253 17.7964 6.9823 18.0161C7.20207 18.2359 7.50014 18.3594 7.81094 18.3594C8.12174 18.3594 8.41981 18.2359 8.63958 18.0161C8.85935 17.7964 8.98281 17.4983 8.98281 17.1875V9.375C8.98281 9.0642 8.85935 8.76613 8.63958 8.54636C8.41981 8.32659 8.12174 8.20312 7.81094 8.20312C7.50014 8.20312 7.20207 8.32659 6.9823 8.54636C6.76253 8.76613 6.63906 9.0642 6.63906 9.375ZM12.4984 8.20312C12.8092 8.20312 13.1073 8.32659 13.3271 8.54636C13.5468 8.76613 13.6703 9.0642 13.6703 9.375V17.1875C13.6703 17.4983 13.5468 17.7964 13.3271 18.0161C13.1073 18.2359 12.8092 18.3594 12.4984 18.3594C12.1876 18.3594 11.8896 18.2359 11.6698 18.0161C11.45 17.7964 11.3266 17.4983 11.3266 17.1875V9.375C11.3266 9.0642 11.45 8.76613 11.6698 8.54636C11.8896 8.32659 12.1876 8.20312 12.4984 8.20312Z" fill="#A5A5A5"/>
+                    </svg>
                   </DeleteButton>
                 </Box2>
               );
@@ -562,7 +567,7 @@ const BudgetPage = () => {
             </svg>
             <h3>
               <span className="dblue">{totalAverage.country} 교환학생 </span>
-              <span>기준, 1학기 총 지출 비용은 </span>
+              <span>기준, 총 지출 비용은 </span>
               <span className="dblue">최저 약 {Math.floor(totalAverage.min_krw / 10000)}만원({currencySymbolMap[totalAverage.currency] || totalAverage.currency}{totalAverage.min_converted})</span>
               <span>, </span>
               <span className="dblue">최대 약 {Math.floor(totalAverage.max_krw / 10000)}만원({currencySymbolMap[totalAverage.currency] || totalAverage.currency}{totalAverage.max_converted})</span>
@@ -574,7 +579,7 @@ const BudgetPage = () => {
               <path d="M7.28481 14.3132L2.3973 9.42573C2.13394 9.16237 1.77675 9.01442 1.40431 9.01442C1.03186 9.01442 0.674671 9.16237 0.411312 9.42573C0.147953 9.68909 0 10.0463 0 10.4187C0 10.6031 0.0363238 10.7858 0.106897 10.9561C0.17747 11.1265 0.28091 11.2813 0.411312 11.4117L6.29886 17.2993C6.84817 17.8486 7.73553 17.8486 8.28485 17.2993L23.1868 2.3973C23.4502 2.13394 23.5981 1.77675 23.5981 1.40431C23.5981 1.03186 23.4502 0.674671 23.1868 0.411312C22.9235 0.147954 22.5663 0 22.1938 0C21.8214 0 21.4642 0.147954 21.2008 0.411312L7.28481 14.3132Z" fill="#115BCA"/>
             </svg>
             <h3>
-              <span>화연이에연 님의 1학기 미국 캘리포니아 파견 </span>
+              <span>{profile?.name} 님의 {totalAverage.country} 파견 </span>
               <span className="dblue">예상 총 금액은 약 {Math.floor(totalBudgetValue.krw / 10000)}만원({currencySymbolMap[totalAverage.currency] || totalAverage.currency}{totalBudgetValue.converted})</span>
               <span>입니다.</span>
             </h3>
@@ -724,12 +729,11 @@ const CostInput = styled.div`
 const DeleteButton = styled.button`
   background: none;
   border: none;
-  color: var(--red);
   font-size: 1.2rem;
   padding: 0 0.5rem;
   position: absolute;
   top: 50%;
-  right: -2.2rem;
+  right: -2.8rem;
   transform: translateY(-50%);
 
   &:hover {

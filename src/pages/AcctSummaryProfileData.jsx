@@ -542,13 +542,14 @@ const AcctSummaryProfileData = () => {
             </Section2Header>
             <Inputfield
               customStyle={`
-            width: 57.00875rem;
-            height: 4.55456rem;
-            flex-shrink: 0;
-            border-radius: 1.177rem;
-            border: 1px solid var(--light-gray, #D9D9D9);
-            background: var(--text-input, #FCFCFC);
-            `}
+                width: 100%;
+                height: 4.55456rem;
+                flex-shrink: 0;
+                border-radius: 1.177rem;
+                border: 1px solid var(--light-gray, #D9D9D9);
+                background: var(--text-input, #FCFCFC);
+                padding: 0 3.6rem;
+              `}
               type="text"
               placeholder="교통비가 생각보다 많이 들었어요!"
               value={formData.summary_note}
@@ -592,7 +593,6 @@ export default AcctSummaryProfileData;
 const PageWrapper = styled.div`
   min-height: 100vh;
   background: var(--white, #ffffff);
-  padding-top: 5.5rem;
 `;
 
 const ContentWrapper = styled.div`
@@ -614,6 +614,8 @@ const Title = styled.h1`
 `;
 
 const ProfileBox = styled.div`
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   gap: 1.37rem;
@@ -622,6 +624,7 @@ const ProfileBox = styled.div`
 
 const ProfileImage = styled.div`
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -820,7 +823,7 @@ const Section2 = styled.section`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  border-radius: 0.625rem;
+  border-radius: 1.07813rem;
   border: 1px solid var(--light-gray, #d9d9d9);
   margin: 0;
 `;
