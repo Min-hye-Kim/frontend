@@ -17,3 +17,21 @@ export const updateBudget = async (budgetData) => {
   const response = await api.put("/budgets/fill/", budgetData);
   return response.data;
 };
+
+// 예산 조회 (GET)
+export const getBaseAverage = async () => {
+  const response = await api.get("/budgets/base-average/");
+  return response.data;
+};
+
+// 예산 조회 (GET)
+export const getLivingAverage = async () => {
+  const response = await api.get("/budgets/living-average/");
+  return response.data;
+};
+
+// 예산 조회 (GET)
+export const getTotalAverage = async () => {
+  const response = await api.get("/budgets/total-average/");
+  return response.data;
+};

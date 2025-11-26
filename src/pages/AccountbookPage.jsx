@@ -266,14 +266,12 @@ const AccountbookPage = () => {
     if (!id) return;
 
     try {
-      const response = await deleteLedgerItem(id);
-      if (response && response.message) {
+        await deleteLedgerItem(id);
         handleCloseModal();
         await fetchAllData();
-      }
-    } catch (error) {
+        } catch (error) {
       console.error("거래내역 삭제 실패", error);
-    }
+      }
   };
 
   // 내 게시글 ㄱㄱ

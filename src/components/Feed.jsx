@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Modal from "./Modal";
 import { FeedsActionAPI } from "@/apis";
-import currencySymbolMap from "../utils/currencySymbolMap";
+import currencySymbolMap from "@/utils/currencySymbolMap";
 
 const Feed = ({
   id,
@@ -27,6 +27,7 @@ const Feed = ({
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("token"));
   const [showModal, setShowModal] = React.useState(false);
+  const [isScrapLoading, setIsScrapLoading] = useState(false);
 
   // 로그인/로그아웃 상태 변화 감지하여 isLoggedIn 갱신
   useEffect(() => {
@@ -46,11 +47,11 @@ const Feed = ({
   // 항상 최신 is_scraped 값을 반영하도록 상태를 동기화
   const [isScrapped, setIsScrapped] = useState(scrapped);
   const [scrapCount, setScrapCount] = useState(scrap_count);
-  const [isScrapLoading, setIsScrapLoading] = useState(false);
 
   useEffect(() => {
     setIsScrapped(scrapped);
   }, [scrapped]);
+
   useEffect(() => {
     setScrapCount(scrap_count);
   }, [scrap_count]);
