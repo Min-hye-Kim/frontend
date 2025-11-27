@@ -280,6 +280,7 @@ const BudgetPage = () => {
       // 1) GET이 성공하면 예산이 존재하므로 → PUT 업데이트
       await BudgetAPI.getBudget();
       const res = await BudgetAPI.updateBudget(payload);
+      alert("예산안이 저장되었습니다.");
       //console.log("put:", res);
       // 수정 후 total_budget_value만 다시 fetch
       const latest = await BudgetAPI.getBudget();
@@ -293,6 +294,7 @@ const BudgetPage = () => {
       // 2) GET 실패 → 예산 없음 → POST 생성
       try {
         const res = await BudgetAPI.createBudget(payload);
+        alert("예산안이 저장되었습니다.");
         //console.log("post:", res);
         // 생성 후 total_budget_value만 다시 fetch
         const latest = await BudgetAPI.getBudget();

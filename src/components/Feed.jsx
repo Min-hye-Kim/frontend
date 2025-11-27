@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import Modal from "./Modal";
-import { FeedsActionAPI } from "@/apis";
+import { FeedsActionAPI} from "@/apis";
 import currencySymbolMap from "@/utils/currencySymbolMap";
 
 const Feed = ({
   id,
+  mySnapshotId,
   nickname,
   gender,
   country,
@@ -27,13 +28,24 @@ const Feed = ({
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("token"));
   const [showModal, setShowModal] = React.useState(false);
+  const [showMineModal, setShowMineModal] = React.useState(false);
   const [isScrapLoading, setIsScrapLoading] = useState(false);
+  const [isMine, setIsMine] = useState(false);
+
+  useEffect(() => {
+    if (id === mySnapshotId) {
+      setIsMine(true);
+    } else {
+      setIsMine(false);
+    }
+  }, [id, mySnapshotId]);
 
   // 로그인/로그아웃 상태 변화 감지하여 isLoggedIn 갱신
   useEffect(() => {
     const handleStorageChange = () => {
       const token = localStorage.getItem("token");
       setIsLoggedIn(!!token);
+
       if (!token) {
         setIsScrapped(false);
       }
@@ -81,6 +93,8 @@ const Feed = ({
     e.stopPropagation();
     if (!isLoggedIn) {
       setShowModal(true);
+    } else if(isMine){
+      setShowMineModal(true);
     } else {
       setIsScrapLoading(true);
       window.scrapLoading = true;
@@ -129,6 +143,7 @@ const Feed = ({
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setShowMineModal(false);
   };
 
   const handleFeedClick = () => {
@@ -145,6 +160,15 @@ const Feed = ({
 
   return(
     <>
+      {showMineModal && (
+        <Modal
+          isOpen={showMineModal}
+          content="자신의 글은 스크랩할 수 없습니다."
+          actionText="닫기"
+          showCancelButton={false}
+          onAction={handleCloseModal}
+        />
+      )}
       {showModal && (
         <Modal
           isOpen={showModal}
@@ -283,7 +307,11 @@ const Type = styled.div`
   align-items: center;
   justify-content: center;
 
-  background: ${({ $exchangeType }) => $exchangeType === "교환학생" ? "var(--exchange)" : "var(--visiting)"};
+  background: ${({ $exchangeType }) => {
+    if ($exchangeType === "교환학생") return "var(--exchange)";       // 교환학생
+    if ($exchangeType === "방문학생") return "var(--visiting)";       // 방문학생
+    return "var(--gray)";                                       // 기타(OT)
+  }};
   
   border-radius: 2.5rem;
 

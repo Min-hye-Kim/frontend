@@ -1,43 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import UploadTopbar from "../components/topbar/UploadTopbar";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import UploadTopbar from "../components/topbar/UploadTopbar";
 import Inputfield from "../components/Inputfield";
-import Modal from "../components/Modal";
 import CategoryCard from "../components/CategoryCard";
 import CircleButton from "../components/button/CircleButton";
-import { createSnapshot, getLedgerSummary } from "../apis/summaries/snapshot";
+import { SummariesAPI } from "@/apis";
 import { useProfile } from "../hooks";
 
-const AcctSummaryProfileData = () => {
+const AcctSummaryCreatePage = () => {
   const navigate = useNavigate();
+  const inputRefs = useRef([]);
   const { profile } = useProfile();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [summaryData, setSummaryData] = useState(null);
   const [categoryData, setCategoryData] = useState([]);
 
-  // 페이지 로드 → 비용 data
   useEffect(() => {
-    fetchLedgerSummary();
+    const fetchSummary = async () => {
+      try {
+        const res = await SummariesAPI.getLedgerSummary();
+        const summary = res.data;
+
+        setSummaryData(summary);
+        setCategoryData(summary.categories || []);
+
+      } catch (err) {
+        console.error("요약본/카테고리 불러오기 실패:", err);
+      }
+    };
+
+    fetchSummary();
   }, []);
 
-  const fetchLedgerSummary = async () => {
-    try {
-      setLoading(true);
-      const response = await getLedgerSummary();
-      if (response && response.data) {
-        setSummaryData(response.data);
-        setCategoryData(response.data.categories || []);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching ledger summary:", error);
-      setLoading(false);
-    }
-  };
+  const onMySum = async () => {
+    const mySumData = await SummariesAPI.getSnapshot();
+    const id = mySumData.data.id;
 
+    navigate(`/summaries/snapshot/${id}`);
+  }
+
+  const MAX_INT = 2147483647;
   const [formData, setFormData] = useState({
     monthly_spend_in_korea: "",
     meal_frequency: "",
@@ -52,6 +54,35 @@ const AcctSummaryProfileData = () => {
     summary_note: "",
   });
 
+  // 월 지출 인풋 전용 핸들러: 숫자, 콤마, 소수점만 허용, 천 단위 콤마 포맷, 최대값 제한
+  const handleMonthlySpendChange = (e) => {
+    const value = e.target.value;
+    if (/^[\d,.]*$/.test(value)) {
+      const numericValue = value.replace(/,/g, '');
+      const numberVal = Number(numericValue);
+      if (numberVal > MAX_INT) {
+        alert("최대 입력 가능 금액은 2,147,483,647원입니다.");
+        return;
+      }
+      const parts = numericValue.split('.');
+      if (parts[0]) {
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+      const formattedValue = parts.join('.');
+      setFormData(prev => ({
+        ...prev,
+        monthly_spend_in_korea: formattedValue
+      }));
+    }
+  };
+
+  // 백엔드 전송용: 콤마 제거, 빈값은 null
+  const getMonthlySpendRawValue = () => {
+    const val = formData.monthly_spend_in_korea;
+    if (val === "") return null;
+    return val.replace(/,/g, '');
+  };
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -59,23 +90,16 @@ const AcctSummaryProfileData = () => {
     }));
   };
 
-  const handlePublish = () => {
-    if (!formData.monthly_spend_in_korea) {
-      alert("한국에서의 한달 지출 비용은 필수 입력 항목입니다.");
-      return;
-    }
-    setIsModalOpen(true);
-  };
+
 
   const handleConfirmPublish = async () => {
     try {
       const requestData = {};
 
       // 필수 필드
-      if (formData.monthly_spend_in_korea) {
-        requestData.monthly_spend_in_korea = parseInt(
-          formData.monthly_spend_in_korea
-        );
+      const rawMonthlySpend = getMonthlySpendRawValue();
+      if (rawMonthlySpend !== null) {
+        requestData.monthly_spend_in_korea = parseInt(rawMonthlySpend);
       }
 
       // 선택 필드 (값 있을 때만 추가)
@@ -109,7 +133,7 @@ const AcctSummaryProfileData = () => {
       if (formData.summary_note) {
         requestData.summary_note = formData.summary_note;
       }
-      const response = await createSnapshot(requestData);
+      const response = await SummariesAPI.createSnapshot(requestData);
       if (response && response.data) {
         // 성공하면? AcctSummaryComplete 페이지로 ㄱㄱ
         navigate("/summaries/complete");
@@ -120,62 +144,57 @@ const AcctSummaryProfileData = () => {
         error.message &&
         error.message.includes("이미 세부 프로필이 존재합니다")
       ) {
-        navigate("/summaries/snapshot");
+        onMySum();
       } else {
         alert(error.message || "게시 중 오류가 발생했습니다.");
       }
     }
   };
 
-  return (
-    <PageWrapper>
-      <UploadTopbar onPublish={handlePublish} />
+  const handleEnter = (e, nextIndex) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
 
-      {loading ? (
-        <ContentWrapper>
-          <p>Loading...</p>
-        </ContentWrapper>
-      ) : (
-        <ContentWrapper>
-          <Title>내 가계부 요약본</Title>
+      const nextInput = inputRefs.current[nextIndex];
+      if (nextInput) {
+        nextInput.focus();
+      }
+    }
+  };
+
+  return (
+    <>
+    <UploadTopbar disabled={!formData.monthly_spend_in_korea} onClick={handleConfirmPublish} />
+    <Title>
+      <p className="page">내 가계부 요약본</p>
+    </Title>
+    <PageWrapper>
+        <ContentWrapper>   
           {/* ————————————————————— 프로필 ————————————————————— */}
           <ProfileBox>
             <ProfileImage>
               <Flag>
-                <img
-                  src={`/images/flags/${encodeURIComponent(
-                    profile?.exchange_country || "미국"
-                  )}.png`}
-                  alt={profile?.exchange_country || "미국"}
-                />
+                {profile?.exchange_country && (
+                  <img
+                    src={`/images/flags/${encodeURIComponent(profile.exchange_country)}.png`}
+                    alt={profile.exchange_country}
+                  />
+                )}
               </Flag>
-              <Type>
-                {profile?.exchange_type === "EX"
-                  ? "교환학생"
-                  : profile?.exchange_type === "VS"
-                  ? "방문학생"
-                  : profile?.exchange_type === "OT"
-                  ? "기타"
-                  : "방문학생"}
-              </Type>
+              <Type $exchangeType={profile?.exchange_type}> {profile?.exchange_type} </Type>
             </ProfileImage>
             <ProfileInfo>
               <p className="body1">
-                {profile?.name || "사용자"} /{" "}
-                {profile?.gender === "M"
-                  ? "남"
-                  : profile?.gender === "F"
-                  ? "여"
-                  : "-"}
+                {profile?.name ?? "User"} / 
+                {profile?.gender}
               </p>
+
               <h2>
-                {profile?.exchange_country || "미국"}{" "}
-                {profile?.exchange_university ||
-                  "University of California, Davis"}
+                {profile?.exchange_country ?? "Country"} {profile?.exchange_university ?? "University"}
               </h2>
+
               <p className="body1">
-                {profile?.exchange_semester || "25년도 1학기"} (
-                {profile?.exchange_period || "5개월"})
+                {profile?.exchange_semester ?? "semester"} ({profile?.exchange_period ?? "period"})
               </p>
             </ProfileInfo>
           </ProfileBox>
@@ -187,27 +206,27 @@ const AcctSummaryProfileData = () => {
               <Required>*필수입력</Required>
               <FormRow>
                 <Label>한국에서의 월 지출</Label>
-                <InputWrapper>
+                <InputWrapper2>
                   <Inputfield
-                    type="number"
+                    ref={(el) => (inputRefs.current[0] = el)}
+                    onKeyDown={(e) => handleEnter(e, 1)}
+                    customStyle={`height: 2.3rem; font-size: 0.75rem; padding: 0 1rem;`}
                     placeholder="금액을 입력해주세요"
                     value={formData.monthly_spend_in_korea}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "monthly_spend_in_korea",
-                        e.target.value
-                      )
-                    }
+                    onChange={handleMonthlySpendChange}
                   />
-                </InputWrapper>
+                  <p className="body2">원</p>
+                </InputWrapper2>
               </FormRow>
 
               <Optional>* 선택입력</Optional>
               <FormRow>
                 <Label>식사</Label>
                 <ButtonGroup1>
-                  {["1", "2", "3"].map((freq) => (
+                  {["1", "2", "3"].map((freq, idx) => (
                     <CircleButton
+                      ref={(el) => (inputRefs.current[1 + idx] = el)}
+                      onKeyDown={(e) => handleEnter(e, 4)}
                       key={freq}
                       onClick={() => handleInputChange("meal_frequency", freq)}
                       customStyle={`
@@ -239,120 +258,144 @@ const AcctSummaryProfileData = () => {
               <FormRow>
                 <Label>외식 및 배달음식 소비</Label>
                 <InputWrapper>
-                  <span style={{ minWidth: "fit-content" }}>주</span>
+                  <p className="body2">주</p>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[4] = el)}
+                    onKeyDown={(e) => handleEnter(e, 5)}
                     customStyle={`
-                    color: var(--black, #000);
-                    border: none;
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 2.5rem;
+                    text-align: right;
                     `}
-                    type="number"
                     placeholder=""
                     value={formData.dineout_per_week}
                     onChange={(e) =>
                       handleInputChange("dineout_per_week", e.target.value)
                     }
                   />
-                  <Unit>회</Unit>
+                  <p className="body2">회</p>
                 </InputWrapper>
               </FormRow>
 
               <FormRow>
                 <Label>커피 등 음료 소비</Label>
                 <InputWrapper>
-                  <span style={{ minWidth: "fit-content" }}>주</span>
+                  <p className="body2">주</p>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[5] = el)}
+                    onKeyDown={(e) => handleEnter(e, 6)}
                     customStyle={`
-                    color: var(--black, #000);
-                    border: none;
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 2.5rem;
+                    text-align: right;
                     `}
-                    type="number"
                     placeholder=""
                     value={formData.coffee_per_week}
                     onChange={(e) =>
                       handleInputChange("coffee_per_week", e.target.value)
                     }
                   />
-                  <Unit>회</Unit>
+                  <p className="body2">회</p>
                 </InputWrapper>
               </FormRow>
 
               <FormRow>
                 <Label>흡연</Label>
                 <InputWrapper>
-                  <span style={{ minWidth: "fit-content" }}>하루</span>
+                  <p className="body2">하루</p>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[6] = el)}
+                    onKeyDown={(e) => handleEnter(e, 7)}
                     customStyle={`
-                    color: var(--black, #000);
-                    border: none;
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 2.5rem;
+                    text-align: right;
                     `}
-                    type="number"
                     placeholder=""
                     value={formData.smoking_per_day}
                     onChange={(e) =>
                       handleInputChange("smoking_per_day", e.target.value)
                     }
                   />
-                  <Unit>회</Unit>
+                  <p className="body2">회</p>
                 </InputWrapper>
               </FormRow>
 
               <FormRow>
                 <Label>음주</Label>
                 <InputWrapper>
-                  <span style={{ minWidth: "fit-content" }}>주</span>
+                  <p className="body2">주</p>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[7] = el)}
+                    onKeyDown={(e) => handleEnter(e, 8)}
                     customStyle={`
-                    color: var(--black, #000);
-                    border: none;
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 2.5rem;
+                    text-align: right;
                     `}
-                    type="number"
                     placeholder=""
                     value={formData.drinking_per_week}
                     onChange={(e) =>
                       handleInputChange("drinking_per_week", e.target.value)
                     }
                   />
-                  <Unit>회</Unit>
+                  <p className="body2">회</p>
                 </InputWrapper>
               </FormRow>
 
               <FormRow>
                 <Label>쇼핑</Label>
                 <InputWrapper>
-                  <span style={{ minWidth: "fit-content" }}>월</span>
+                  <p className="body2">월</p>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[8] = el)}
+                    onKeyDown={(e) => handleEnter(e, 9)}
                     customStyle={`
-                    color: var(--black, #000);
-                    border: none;
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 2.5rem;
+                    text-align: right;
                     `}
-                    type="number"
                     placeholder=""
                     value={formData.shopping_per_month}
                     onChange={(e) =>
                       handleInputChange("shopping_per_month", e.target.value)
                     }
                   />
-                  <Unit>회</Unit>
+                  <p className="body2">회</p>
                 </InputWrapper>
               </FormRow>
 
               <FormRow>
                 <Label>여가 및 문화생활 소비</Label>
                 <InputWrapper>
-                  <span style={{ minWidth: "fit-content" }}>월</span>
+                  <p className="body2">월</p>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[9] = el)}
+                    onKeyDown={(e) => handleEnter(e, 10)}
                     customStyle={`
-                    color: var(--black, #000);
-                    border: none;
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 2.5rem;
+                    text-align: right;
                     `}
-                    type="number"
                     placeholder=""
                     value={formData.culture_per_month}
                     onChange={(e) =>
                       handleInputChange("culture_per_month", e.target.value)
                     }
                   />
-                  <Unit>회</Unit>
+                  <p className="body2">회</p>
                 </InputWrapper>
               </FormRow>
 
@@ -360,8 +403,13 @@ const AcctSummaryProfileData = () => {
                 <Label>거주유형</Label>
                 <InputWrapper>
                   <Inputfield
+                    ref={(el) => (inputRefs.current[10] = el)}
+                    onKeyDown={(e) => handleEnter(e, 11)}
                     customStyle={`
-                    color: var(--black, #000);
+                    height: 2.3rem;
+                    font-size: 0.75rem;
+                    font-weight: 400;
+                    padding: 0 1rem;
                   `}
                     type="text"
                     placeholder="거주 유형을 직접 입력해주세요"
@@ -377,6 +425,8 @@ const AcctSummaryProfileData = () => {
                 <Label>통학 여부</Label>
                 <ButtonGroup2>
                   <CircleButton
+                    ref={(el) => (inputRefs.current[11] = el)}
+                    onKeyDown={(e) => handleEnter(e, 12)}
                     onClick={() => handleInputChange("commute", true)}
                     customStyle={`
                     width: 90%;
@@ -402,6 +452,8 @@ const AcctSummaryProfileData = () => {
                     예
                   </CircleButton>
                   <CircleButton
+                    ref={(el) => (inputRefs.current[12] = el)}
+                    onKeyDown={(e) => handleEnter(e, 13)}
                     onClick={() => handleInputChange("commute", false)}
                     customStyle={`
                       width: 100%;
@@ -541,6 +593,7 @@ const AcctSummaryProfileData = () => {
               <OptionalNotice>* 선택입력</OptionalNotice>
             </Section2Header>
             <Inputfield
+              ref={(el) => (inputRefs.current[13] = el)}
               customStyle={`
                 width: 100%;
                 height: 4.55456rem;
@@ -549,9 +602,10 @@ const AcctSummaryProfileData = () => {
                 border: 1px solid var(--light-gray, #D9D9D9);
                 background: var(--text-input, #FCFCFC);
                 padding: 0 3.6rem;
+                margin-top: 1rem;
               `}
               type="text"
-              placeholder="교통비가 생각보다 많이 들었어요!"
+              placeholder="예: 교통비가 생각보다 많이 들었어요!"
               value={formData.summary_note}
               onChange={(e) =>
                 handleInputChange("summary_note", e.target.value)
@@ -559,65 +613,51 @@ const AcctSummaryProfileData = () => {
             />
           </FormRow2>
         </ContentWrapper>
-      )}
-
-      {/* —————————————————————————— 모달 —————————————————————————— */}
-      <Modal
-        isOpen={isModalOpen}
-        content="게시하시겠습니까?"
-        subtext="게시 후에도 게시물을 수정하실 수 있습니다."
-        customContentStyle={`
-          font-size: 1.3125rem;
-          font-weight: 700;
-          `}
-        customSubtextStyle={`
-          font-size: 0.9rem;
-          color: var(--dark-gray);
-          `}
-        actionText="네"
-        cancelText="아니오"
-        showCancelButton={true}
-        showImage={false}
-        onAction={handleConfirmPublish}
-        onCancel={() => setIsModalOpen(false)}
-        onClose={() => setIsModalOpen(false)}
-      />
     </PageWrapper>
+    </>
   );
 };
 
-export default AcctSummaryProfileData;
+export default AcctSummaryCreatePage;
 
 // —————————————————————————— 스타일링 ——————————————————————————
 
+const Title = styled.h1`
+  width: 100vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100vw;
+
+  .page {
+    width: 100%;
+
+    padding-left: 6.87rem;
+    margin-bottom: 1.87rem;
+
+    text-align: left;
+  }
+`;
+
 const PageWrapper = styled.div`
+  width: 60%;
   min-height: 100vh;
   background: var(--white, #ffffff);
+  margin-bottom: 3rem;
 `;
 
 const ContentWrapper = styled.div`
-  max-width: 70vw;
   margin: 0 auto;
-  padding: 2rem 2.56rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-`;
-
-const Title = styled.h1`
-  color: var(--black, #000);
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-  padding: 0;
-  text-align: left;
 `;
 
 const ProfileBox = styled.div`
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1.37rem;
   padding: 1.5rem;
 `;
@@ -629,6 +669,7 @@ const ProfileImage = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  margin-bottom: 0.5rem;
 `;
 
 const Flag = styled.div`
@@ -659,7 +700,11 @@ const Type = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--visiting);
+  background: ${({ $exchangeType }) => {
+    if ($exchangeType === "교환학생") return "var(--exchange)";       // 교환학생
+    if ($exchangeType === "방문학생") return "var(--visiting)";       // 방문학생
+    return "var(--gray)";                                       // 기타(OT)
+  }};
   border-radius: 2.5rem;
   font-family: "Pretendard Variable";
   font-size: 0.85rem;
@@ -716,7 +761,6 @@ const FormRow2 = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
   grid-column: ${(props) => (props.$fullWidth ? "1 / -1" : "auto")};
   margin-top: 1rem;
 `;
@@ -748,10 +792,12 @@ const ButtonGroup2 = styled.div`
 const Section = styled.section`
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
   padding: 0;
   border-radius: 1.07813rem;
   border: 1px solid var(--light-gray, #d9d9d9);
+  margin-bottom: 3rem;
 `;
 
 const SectionTitle = styled.h2`
@@ -761,26 +807,39 @@ const SectionTitle = styled.h2`
 `;
 
 const InputWrapper = styled.div`
-  height: 2.15625rem;
-  font-size: 0.85rem;
-  font-weight: 400;
-  color: var(--black, #000);
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   width: 100%;
-
-  border-radius: 0.28125rem;
-  border: 1px solid var(--text-input, #f4f4f4);
-  background: var(--text-input, #fcfcfc);
+  /* 단위 텍스트를 Inputfield 위에 겹치게 absolute로 배치 */
+  p.body2 {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  /* 첫 번째 단위는 왼쪽, 두 번째 단위는 오른쪽에 배치 */
+  p.body2:first-of-type {
+    left: 1rem;
+  }
+  p.body2:last-of-type {
+    right: 1rem;
+  }
 `;
 
-const Unit = styled.span`
-  color: var(--black, #000);
-  font-size: 0.875rem;
-  font-weight: 400;
-  white-space: nowrap;
-  margin-right: 1.31rem;
+const InputWrapper2 = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  /* 단위 텍스트를 Inputfield 위에 겹치게 absolute로 배치 */
+  p.body2 {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    right: 1rem;
+  }
 `;
 
 const Notice = styled.div`
@@ -808,7 +867,6 @@ const Username = styled.h2`
 const TitleWrapper = styled.div`
   display: flex;
   align-items: center;
-  margin-top: 3.06rem;
 `;
 
 const Section2Header = styled.div`
@@ -825,12 +883,14 @@ const Section2 = styled.section`
   align-items: center;
   border-radius: 1.07813rem;
   border: 1px solid var(--light-gray, #d9d9d9);
-  margin: 0;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
 `;
 
 // ————— 요약본(카테고리) —————
 
 const CategoryHeader = styled.div`
+  width: 100%;  
   display: flex;
   justify-content: center;
   align-items: center;
@@ -841,18 +901,21 @@ const CategoryHeader = styled.div`
 `;
 
 const CategoryTitle = styled.h2`
+  width: 100%;  
   color: var(--black, #000);
   font-size: 1.7rem;
   font-weight: 700;
 `;
 
 const CategoryAmount = styled.span`
+  width: 100%;  
   color: var(--deep-blue, #0b3e99);
   font-size: 1.7rem;
   font-weight: 700;
 `;
 
 const CategoryGrid = styled.div`
+  width: 100%;  
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
@@ -861,6 +924,7 @@ const CategoryGrid = styled.div`
 `;
 
 const CategorySection = styled.div`
+  width: 100%;  
   display: flex;
   flex-direction: column;
   align-items: center;

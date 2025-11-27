@@ -18,11 +18,19 @@ const signupCompleteButtonStyle = {
 const SignupCompletePage = () => {
   const navigate = useNavigate();
   const onMySum = async () => {
-    const mySumData = await SummariesAPI.getSnapshot();
-    const id = mySumData.data.id;
+    const hasSnapshot = await SummariesAPI.getHasSnapshot();
+    const hasSummary = hasSnapshot.data.has_summary_snapshot;
+
+    if (!hasSummary) {
+      setShowModal(true);
+      return;
+    }
+
+    const mySumData = await SummariesAPI.getLatestSnapshot();
+    const id = mySumData.data.snapshot_id;
 
     navigate(`/summaries/snapshot/${id}`);
-  }
+  };
 
   return(
     <Wrapper>
@@ -35,7 +43,7 @@ const SignupCompletePage = () => {
         onClick={onMySum}
         customStyle={signupCompleteButtonStyle}
       >
-        <span className="h3">게시글 바로가기</span>
+        <span className="h3">내 게시글 바로가기</span>
       </SquareButton>
     </Wrapper>
   );

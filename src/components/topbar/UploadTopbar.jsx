@@ -1,12 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate} from 'react-router-dom';
 import CircleButton from "../button/CircleButton"
+import Modal from "../Modal";
 
-const BackTopbar = ({ onPublish }) =>{
+
+const BackTopbar = ({ disabled = true, onClick }) => {
     const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    return(
+    // 게시하기 버튼 클릭 시 모달 오픈
+    const handlePublish = () => {
+        setIsModalOpen(true);
+    };
+
+    // 모달에서 네(확인) 클릭 시 동작 (예시: 실제 게시 로직 필요시 추가)
+    const handleConfirm = () => {
+        setIsModalOpen(false);
+        if (onClick) { onClick(); }
+    };
+
+    // 모달에서 아니오/닫기 클릭 시
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+
+    return (
         <>
             <Wrapper>
                 <Button onClick={() => navigate(-1)}>
@@ -15,11 +34,31 @@ const BackTopbar = ({ onPublish }) =>{
                     </svg>
                     이전으로
                 </Button>
-                <CircleButton onClick={onPublish}>게시하기</CircleButton>
+                <CircleButton onClick={handlePublish} disabled={disabled} toggleOnClick={false}>게시하기</CircleButton>
             </Wrapper>
+            <Modal
+                isOpen={isModalOpen}
+                content="게시하시겠습니까?"
+                subtext="게시 후에도 게시물을 수정하실 수 있습니다."
+                customContentStyle={`
+                  font-size: 1.3125rem;
+                  font-weight: 700;
+                `}
+                customSubtextStyle={`
+                  font-size: 0.9rem;
+                  color: var(--dark-gray);
+                `}
+                actionText="네"
+                cancelText="아니오"
+                showCancelButton={true}
+                showImage={false}
+                onAction={handleConfirm}
+                onCancel={handleCancel}
+                onClose={handleCancel}
+            />
         </>
     );
-}
+};
 
 export default BackTopbar;
 
@@ -39,6 +78,8 @@ const Wrapper = styled.div`
     padding: 0 2.56rem;
 
     background-color: var(--white);
+
+    z-index: 1000;
 `
 
 const Button = styled.button`

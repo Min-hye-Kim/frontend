@@ -2,15 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "../hooks";
-import {
-  createLedgerItem,
-  updateLedgerItem,
-  deleteLedgerItem,
-  getDateLedgers,
-  getCategoryLedgers,
-  getThisMonthLedgers,
-  getTotalMonthLedgers,
-} from "../apis/ledgers/ledgers";
+import { LedgersAPI, SummariesAPI } from "@/apis"
 import TransactionEdit from "../components/TransactionEdit";
 import TransactionItem from "../components/TransactionItem";
 import CategoryCard from "../components/CategoryCard";
@@ -20,6 +12,7 @@ import Button from "../components/button/SquareButton";
 const AccountbookPage = () => {
   const navigate = useNavigate();
   const { profile } = useProfile();
+  const [hasSnapshot, setHasSnapshot] = useState(false);
 
   // 모달에서 사용할 TransactionEdit ref
   const editFormRef = React.useRef(null);
@@ -48,12 +41,24 @@ const AccountbookPage = () => {
     fetchAllData();
   }, [viewType, selectedMonth]);
 
+  useEffect(() => {
+    const fetchHasSnapshot = async () => {
+      try {
+        const response = await SummariesAPI.getHasSnapshot();
+        setHasSnapshot(response.data.has_summary_snapshot);
+      } catch (error) {
+        console.error("Error fetching has-snapshot:", error);
+      }
+    }
+    fetchHasSnapshot();
+  }, []);
+
   const fetchAllData = async () => {
     try {
       setLoading(true);
 
       if (viewType === "daily") {
-        const dateResponse = await getDateLedgers();
+        const dateResponse = await LedgersAPI.getDateLedgers();
         if (dateResponse && dateResponse.data) {
           // API 데이터 구조 그대로 저장
           setDailyData(dateResponse.data);
@@ -79,7 +84,7 @@ const AccountbookPage = () => {
           setTransactions(allTransactions);
         }
       } else {
-        const categoryResponse = await getCategoryLedgers();
+        const categoryResponse = await LedgersAPI.getCategoryLedgers();
         if (categoryResponse && categoryResponse.data) {
           const data = categoryResponse.data;
 
@@ -100,7 +105,7 @@ const AccountbookPage = () => {
       }
 
       // 이번달
-      const thisMonthResponse = await getThisMonthLedgers();
+      const thisMonthResponse = await LedgersAPI.getThisMonthLedgers();
       if (thisMonthResponse && thisMonthResponse.data) {
         const data = thisMonthResponse.data;
         setMonthlyExpense({
@@ -116,7 +121,7 @@ const AccountbookPage = () => {
       }
 
       // 총기간
-      const totalMonthResponse = await getTotalMonthLedgers();
+      const totalMonthResponse = await LedgersAPI.getTotalMonthLedgers();
       if (totalMonthResponse && totalMonthResponse.data) {
         const data = totalMonthResponse.data;
         setTotalExpense({
@@ -136,6 +141,21 @@ const AccountbookPage = () => {
       console.error("거래내역 조회 실패", error);
       setLoading(false);
     }
+  };
+
+  const onMySum = async () => {
+    const hasSnapshot = await SummariesAPI.getHasSnapshot();
+    const hasSummary = hasSnapshot.data.has_summary_snapshot;
+
+    if (!hasSummary) {
+      setShowModal(true);
+      return;
+    }
+
+    const mySumData = await SummariesAPI.getLatestSnapshot();
+    const id = mySumData.data.snapshot_id;
+
+    navigate(`/summaries/snapshot/${id}`);
   };
 
   const [monthlyExpense, setMonthlyExpense] = useState({
@@ -213,9 +233,7 @@ const AccountbookPage = () => {
   };
 
   const handlePublish = () => {
-    // API: POST /summaries/snapshot/ (가계부 요약본 등록)
-    // 세부 프로필 데이터를 포함하여 POST 요청으로 API 연결하면 되겠다
-    navigate("/summaries/loading");
+    navigate("/summaries/create");
   };
 
   const handleOpenModal = (transaction) => {
@@ -235,7 +253,7 @@ const AccountbookPage = () => {
     }
 
     try {
-      const response = await createLedgerItem(data);
+      const response = await LedgersAPI.createLedgerItem(data);
       if (response && response.data) {
         // 등록 성공 후 데이터 다시 가져오기
         await fetchAllData();
@@ -250,7 +268,7 @@ const AccountbookPage = () => {
     if (!data || !editingTransaction) return;
 
     try {
-      const response = await updateLedgerItem(editingTransaction.id, data);
+      const response = await LedgersAPI.updateLedgerItem(editingTransaction.id, data);
       if (response && response.data) {
         await fetchAllData();
         handleCloseModal();
@@ -265,18 +283,12 @@ const AccountbookPage = () => {
     if (!id) return;
 
     try {
-        await deleteLedgerItem(id);
+        await LedgersAPI.deleteLedgerItem(id);
         handleCloseModal();
         await fetchAllData();
         } catch (error) {
       console.error("거래내역 삭제 실패", error);
       }
-  };
-
-  // 내 게시글 ㄱㄱ
-  const handleGoToMyPost = () => {
-    // API: GET /summaries/snapshot/<int:snapshot_id>/
-    navigate("/summaries/snapshot");
   };
 
   // 일별 daily 뷰
@@ -523,8 +535,10 @@ const AccountbookPage = () => {
 
   return (
     <>
+      <PageTitle>
+        <p className="page">가계부</p>
+      </PageTitle>
       <PageContainer>
-        <PageTitle>가계부</PageTitle>
         <Wrapper>
           <MainContent>
             {/* TransactionEdit : 걍 컴포넌트 만들었음.. */}
@@ -764,37 +778,27 @@ const AccountbookPage = () => {
             <ButtonGroup>
               <Button
                 onClick={handlePublish}
-                disabled={transactions.length === 0 || isSummaryPublished}
+                disabled={transactions.length === 0 || hasSnapshot}
                 customStyle={`
               width: 100%;
               height: 3.609375rem;
               padding: 1.078125rem 1.5rem;
               border-radius: 0.97744rem;
               font-size: 1.125rem;
-              background: ${
-                transactions.length === 0 || isSummaryPublished
-                  ? "var(--gray, #a5a5a5)"
-                  : "var(--blue, #115bca)"
-              };
             `}
               >
                 <span className="h3">내 가계부 요약본 게시하기</span>
               </Button>
 
               <Button
-                onClick={handleGoToMyPost}
-                disabled={!isSummaryPublished}
+                onClick={onMySum}
+                disabled={transactions.length === 0 || !hasSnapshot}
                 customStyle={`
               width: 100%;
               height: 3.609375rem;
               padding: 1.078125rem 1.5rem;
               border-radius: 0.97744rem;
               font-size: 1.125rem;
-              background: ${
-                isSummaryPublished
-                  ? "var(--blue, #115bca)"
-                  : "var(--gray, #a5a5a5)"
-              };
             `}
               >
                 <span className="h3">내 게시글 바로가기</span>
@@ -812,26 +816,33 @@ export default AccountbookPage;
 //
 // ————————————————————— 스타일링 —————————————————————
 
+const PageTitle = styled.h2`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100vw;
+
+  .page {
+    width: 100%;
+
+    padding-left: 6.87rem;
+    margin-bottom: 1.87rem;
+
+    text-align: left;
+  }
+`;
+
 const PageContainer = styled.div`
-  width: 100%;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 3rem;
 `;
 
-const PageTitle = styled.h2`
-  width: 100%;
-  max-width: calc(38rem + 2rem + 16rem);
-  color: var(--black, #000);
-  text-align: left;
-  margin-bottom: 1.5rem;
-`;
-
 const Wrapper = styled.div`
   width: 100%;
   max-width: calc(38rem + 2rem + 16rem);
-  margin: 0 auto;
   min-height: calc(100vh - 5.5rem - 1.25rem);
   display: grid;
   grid-template-columns: 45fr 32fr;
@@ -920,6 +931,7 @@ const EmptyMessage = styled.p`
   color: var(--gray, #a5a5a5);
   font-size: 1.125rem;
   font-weight: 400;
+  margin-top: 2rem;
 `;
 
 const Sidebar = styled.aside`

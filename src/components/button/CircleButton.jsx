@@ -1,17 +1,19 @@
 import React, { useState, forwardRef } from "react";
 import styled from "styled-components";
 
-
 const CircleButton = forwardRef(({
   children,       // 버튼 안의 내용
   onClick,        // 클릭 시 실행할 함수
   disabled = false, // 비활성화 여부
   customStyle,       // 인라인 스타일 오버라이드
   onKeyDown, // 키보드 이벤트를 받을 props
+  toggleOnClick = true, // 클릭 시 토글 여부 (기본 true)
 }, ref) => {
     const [isClickedIn, setIsClickedIn] = useState(false);
     const handleClick = (e) => {
-        setIsClickedIn((prev) => !prev);   // 내부 토글
+        if (toggleOnClick) {
+            setIsClickedIn((prev) => !prev);   // 내부 토글
+        }
         onClick?.(e);                   // 외부 onClick 실행
     };
 

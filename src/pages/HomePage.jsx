@@ -5,7 +5,7 @@ import Inputfield from "../components/Inputfield";
 import Feed from "../components/Feed";
 import Modal from "../components/Modal";
 import Spinner from '../components/Spinner';
-import { FeedsAPI } from '@/apis';
+import { FeedsAPI, SummariesAPI } from '@/apis';
 import { useProfile } from "@/hooks";
 
 const HomeInputStyle = {
@@ -35,10 +35,22 @@ const HomePage = () => {
   const [sort, setSort] = useState("latest"); // 선택된 정렬방법 (latest: 최신순, scrap: 스크랩 많은 순)
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false); // 검색 중 여부
   const [showModal, setShowModal] = useState(false);
+  const [mySnapshotId, setMySnapshotId] = useState(null);
 
-  // 검색 중 여부
-  const [searching, setSearching] = useState(false);
+  useEffect(() => {
+    const fetchMySnapshot = async () => {
+      try {
+        const res = await SummariesAPI.getLatestSnapshot();
+        setMySnapshotId(res.data.snapshot_id);
+      } catch (err) {
+        setMySnapshotId(null);
+        console.log(err.data);
+      }
+    };
+    fetchMySnapshot();
+  }, []);
 
   // Feed에서 scrap/un-scrap 시 호출되는 핸들러
   const fetchFeeds = async () => {
@@ -179,6 +191,7 @@ const HomePage = () => {
               <Feed
                 key={feed.id}
                 {...feed}
+                mySnapshotId={mySnapshotId}
                 onScrapChange={handleScrapChange}
               />
             ))

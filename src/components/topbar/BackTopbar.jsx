@@ -37,6 +37,7 @@ const Wrapper = styled.div`
     padding: 0 2.56rem;
 
     background-color: var(--white);
+    z-index: 1000;
 `
 
 const Button = styled.button`

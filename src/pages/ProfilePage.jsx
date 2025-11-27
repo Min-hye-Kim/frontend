@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Inputfield from "../components/Inputfield";
 import SearchDropdown from "../components/SearchDropdown";
 import Dropdown from "../components/Dropdown";
+import Modal from "../components/Modal";
 import Spinner from '../components/Spinner';
 import { useDropdownData, useProfile } from "@/hooks";
 import { ProfileAPI, SummariesAPI } from "@/apis";
@@ -19,6 +20,7 @@ const profileInputStyle = {
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { profile, setProfile } = useProfile();
+  const [showModal, setShowModal] = React.useState(false);
 
   // 커스텀 훅으로 드롭다운 데이터 관리
   const {
@@ -122,13 +124,41 @@ const ProfilePage = () => {
   };
 
   const onMySum = async () => {
-    const mySumData = await SummariesAPI.getSnapshot();
-    const id = mySumData.data.id;
+    const hasSnapshot = await SummariesAPI.getHasSnapshot();
+    const hasSummary = hasSnapshot.data.has_summary_snapshot;
+
+    if (!hasSummary) {
+      setShowModal(true);
+      return;
+    }
+
+    const mySumData = await SummariesAPI.getLatestSnapshot();
+    const id = mySumData.data.snapshot_id;
 
     navigate(`/summaries/snapshot/${id}`);
-  }
+  };
+
+  const handleModalAction = () => {
+    setShowModal(false);
+    navigate('/accountbook');
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
 
   return(
+    <>
+    {showModal && (
+      <Modal
+        isOpen={showModal}
+        content="게시된 가계부 요약본이 없습니다."
+        cancelText="닫기"
+        actionText="요약본 게시하러 가기"
+        onClose={handleCloseModal}
+        onAction={handleModalAction}
+      />
+    )}
     <Wrapper>
         <h2 className="title">프로필</h2>
         <Box>
@@ -151,6 +181,7 @@ const ProfilePage = () => {
             <h3
               className="blue"
               onClick={toggleEdit}
+              style={{ cursor: 'pointer' }}
             >
               저장
             </h3>
@@ -249,6 +280,7 @@ const ProfilePage = () => {
           </svg>
         </Button>
     </Wrapper>
+    </>
   );
 }
 

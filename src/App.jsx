@@ -25,11 +25,9 @@ import BudgetPage from "./pages/BudgetPage";
 //Accountbook
 import AccountbookPage from "./pages/AccountbookPage";
 //AcctSummary
-import AcctSummaryLoading from "./pages/AcctSummaryLoading";
-import AcctSummaryComplete from "./pages/AcctSummaryComplete";
-import AcctSummaryProfileData from "./pages/AcctSummaryProfileData";
+import AcctSummaryCompletePage from "./pages/AcctSummaryCompletePage";
+import AcctSummaryCreate from "./pages/AcctSummaryCreatePage"
 import AcctSummaryPage from "./pages/AcctSummaryPage";
-import AcctSummaryProfileEdit from "./pages/AcctSummaryProfileEdit";
 
 function App() {
   return (
@@ -49,9 +47,7 @@ function App() {
 
           {/* UploadTopbar(뒤로가기+게시하기) */}
           <Route element={<UploadLayout />}>
-            <Route path="/summaries/loading" element={<AcctSummaryLoading />} />
-            <Route path="/summaries/profile" element={<AcctSummaryProfileData />} />
-            <Route path="/summaries/edit" element={<AcctSummaryProfileEdit />} />
+            <Route path="/summaries/create" element={<AcctSummaryCreate />} />
           </Route>
 
           {/* BackTopbar(뒤로가기) */}
@@ -63,7 +59,7 @@ function App() {
           {/* Topbar X */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup/complete" element={<SignupCompletePage/>}/>
-          <Route path="/summaries/complete" element={<AcctSummaryComplete />} />
+          <Route path="/summaries/complete" element={<AcctSummaryCompletePage />} />
         </Routes>
       </Router>
     </>
