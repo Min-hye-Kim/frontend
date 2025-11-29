@@ -24,7 +24,9 @@ const AcctSummaryPage = () => {
   const [scrapCount, setScrapCount] = useState(0);
   const [editMode, setEditMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    () => !!localStorage.getItem("token")
+  );
   // 로그인/로그아웃 상태 변화 감지
   useEffect(() => {
     const handleStorageChange = () => {
@@ -55,20 +57,20 @@ const AcctSummaryPage = () => {
   const handleMonthlySpendChange = (e) => {
     const value = e.target.value;
     if (/^[\d,.]*$/.test(value)) {
-      const numericValue = value.replace(/,/g, '');
+      const numericValue = value.replace(/,/g, "");
       const numberVal = Number(numericValue);
       if (numberVal > MAX_INT) {
         alert("최대 입력 가능 금액은 2,147,483,647원입니다.");
         return;
       }
-      const parts = numericValue.split('.');
+      const parts = numericValue.split(".");
       if (parts[0]) {
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
       }
-      const formattedValue = parts.join('.');
-      setFormData(prev => ({
+      const formattedValue = parts.join(".");
+      setFormData((prev) => ({
         ...prev,
-        monthly_spend_in_korea: formattedValue
+        monthly_spend_in_korea: formattedValue,
       }));
     }
   };
@@ -77,7 +79,7 @@ const AcctSummaryPage = () => {
   const getMonthlySpendRawValue = () => {
     const val = formData.monthly_spend_in_korea;
     if (val === "") return null;
-    return val.replace(/,/g, '');
+    return val.replace(/,/g, "");
   };
 
   //데이터 띄울때 구분자(,)
@@ -95,21 +97,21 @@ const AcctSummaryPage = () => {
         const snapshotRes = await SummariesAPI.getSnapshot();
         const data = snapshotRes.data;
 
-      setFormData({
-        monthly_spend_in_korea: data.monthly_spend_in_korea
-          ? Number(data.monthly_spend_in_korea).toLocaleString()
-          : "",
-        meal_frequency: data.meal_frequency || "",
-        dineout_per_week: data.dineout_per_week ?? "",
-        coffee_per_week: data.coffee_per_week ?? "",
-        smoking_per_day: data.smoking_per_day ?? "",
-        drinking_per_week: data.drinking_per_week ?? "",
-        shopping_per_month: data.shopping_per_month ?? "",
-        culture_per_month: data.culture_per_month ?? "",
-        residence_type: data.residence_type || "",
-        commute: data.commute,
-        summary_note: data.summary_note || "",
-      });
+        setFormData({
+          monthly_spend_in_korea: data.monthly_spend_in_korea
+            ? Number(data.monthly_spend_in_korea).toLocaleString()
+            : "",
+          meal_frequency: data.meal_frequency || "",
+          dineout_per_week: data.dineout_per_week ?? "",
+          coffee_per_week: data.coffee_per_week ?? "",
+          smoking_per_day: data.smoking_per_day ?? "",
+          drinking_per_week: data.drinking_per_week ?? "",
+          shopping_per_month: data.shopping_per_month ?? "",
+          culture_per_month: data.culture_per_month ?? "",
+          residence_type: data.residence_type || "",
+          commute: data.commute,
+          summary_note: data.summary_note || "",
+        });
 
         setEditMode(true);
       } catch (err) {
@@ -154,7 +156,6 @@ const AcctSummaryPage = () => {
       setFeedDetail(merged);
 
       setEditMode(false);
-
     } catch (err) {
       console.error(err);
       alert("세부 프로필 수정에 실패했습니다.");
@@ -202,8 +203,8 @@ const AcctSummaryPage = () => {
     }
     try {
       // UI 먼저 반영 (optimistic update)
-      setLiked(prev => !prev);
-      setLikeCount(prev => (liked ? prev - 1 : prev + 1));
+      setLiked((prev) => !prev);
+      setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
 
       if (!liked) await FeedsActionAPI.addFavorite(id);
       else await FeedsActionAPI.removeFavorite(id);
@@ -211,8 +212,8 @@ const AcctSummaryPage = () => {
       console.error("좋아요 처리 실패:", err);
 
       // 실패 시 롤백
-      setLiked(prev => !prev);
-      setLikeCount(prev => (liked ? prev + 1 : prev - 1));
+      setLiked((prev) => !prev);
+      setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
     }
   };
 
@@ -222,23 +223,23 @@ const AcctSummaryPage = () => {
       return;
     }
     try {
-      setScrapped(prev => !prev);
-      setScrapCount(prev => (scrapped ? prev - 1 : prev + 1));
+      setScrapped((prev) => !prev);
+      setScrapCount((prev) => (scrapped ? prev - 1 : prev + 1));
 
       if (!scrapped) await FeedsActionAPI.addScrap(id);
       else await FeedsActionAPI.removeScrap(id);
     } catch (err) {
       console.error("스크랩 처리 실패:", err);
 
-      setScrapped(prev => !prev);
-      setScrapCount(prev => (scrapped ? prev + 1 : prev - 1));
+      setScrapped((prev) => !prev);
+      setScrapCount((prev) => (scrapped ? prev + 1 : prev - 1));
     }
   };
 
   // 모달 핸들러
   const handleModalAction = () => {
     setShowModal(false);
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
   const handleCloseModal = () => {
     setShowModal(false);
@@ -258,11 +259,13 @@ const AcctSummaryPage = () => {
 
   // 금액 포맷
   const formatAmount = (amount, digits = 2) => {
-    if (amount === null || amount === undefined || isNaN(Number(amount))) return "-";
+    if (amount === null || amount === undefined || isNaN(Number(amount)))
+      return "-";
     return parseFloat(amount).toFixed(digits);
   };
   const formatKRW = (amount) => {
-    if (amount === null || amount === undefined || isNaN(Number(amount))) return "-";
+    if (amount === null || amount === undefined || isNaN(Number(amount)))
+      return "-";
     return `₩${parseInt(amount, 10).toLocaleString()}`;
   };
 
@@ -278,8 +281,7 @@ const AcctSummaryPage = () => {
   ];
 
   // 실제 데이터
-  const apiCategories =
-    feedDetail?.living_expense_summary?.categories || [];
+  const apiCategories = feedDetail?.living_expense_summary?.categories || [];
 
   // 코드 기준으로 merge
   const livingCategories = DEFAULT_LIVING_CATEGORIES.map((cat) => {
@@ -289,13 +291,11 @@ const AcctSummaryPage = () => {
       code: cat.code,
       label: cat.label,
       foreign_amount: found?.foreign_amount ?? "0.00",
-      foreign_currency: found?.foreign_currency ?? feedDetail.living_expense_foreign_currency,
+      foreign_currency:
+        found?.foreign_currency ?? feedDetail.living_expense_foreign_currency,
       krw_amount: found?.krw_amount ?? "0",
       krw_currency: found?.krw_currency ?? "KRW",
-      budget_diff: found?.budget_diff ?? {
-        foreign_amount: "0.00",
-        foreign_currency: found?.foreign_currency ?? feedDetail.living_expense_foreign_currency,
-      },
+      current_rate_krw_amount: found?.current_rate_krw_amount ?? "0",
     };
   });
 
@@ -322,131 +322,141 @@ const AcctSummaryPage = () => {
     }
   };
 
-
   return (
     <>
-    <TitleRow>
-      <p className="page">가계부 상세보기</p>
-    </TitleRow>
-    <PageWrapper>
-      <ContentWrapper>
-        {showModal && (
-          <Modal
-            isOpen={showModal}
-            content="로그인이 필요한 기능입니다."
-            cancelText="닫기"
-            actionText="로그인하러 가기"
-            onClose={handleCloseModal}
-            onAction={handleModalAction}
-          />
-        )}
-        {/* ————————————————————— 피드 상세 프로필 ————————————————————— */}
-        <ProfileBox>
-          <ProfileImage>
-            <Flag>
-              <img
-                src={
-                  feedDetail.exchange_info?.country 
-                    ? `/images/flags/${encodeURIComponent(feedDetail.exchange_info?.country)}.png`
-                    : ""
+      <TitleRow>
+        <p className="page">가계부 상세보기</p>
+      </TitleRow>
+      <PageWrapper>
+        <ContentWrapper>
+          {showModal && (
+            <Modal
+              isOpen={showModal}
+              content="로그인이 필요한 기능입니다."
+              cancelText="닫기"
+              actionText="로그인하러 가기"
+              onClose={handleCloseModal}
+              onAction={handleModalAction}
+            />
+          )}
+          {/* ————————————————————— 피드 상세 프로필 ————————————————————— */}
+          <ProfileBox>
+            <ProfileImage>
+              <Flag>
+                <img
+                  src={
+                    feedDetail.exchange_info?.country
+                      ? `/images/flags/${encodeURIComponent(
+                          feedDetail.exchange_info?.country
+                        )}.png`
+                      : ""
                   }
-                alt={feedDetail.exchange_info?.country || ""}
-              />
-            </Flag>
-            <Type $exchangeType={feedDetail.exchange_info?.exchange_type}>
-              {feedDetail.exchange_info?.exchange_type}
-            </Type>
-          </ProfileImage>
-          <ProfileInfo>
-            <ProfileInfoMe>
+                  alt={feedDetail.exchange_info?.country || ""}
+                />
+              </Flag>
+              <Type $exchangeType={feedDetail.exchange_info?.exchange_type}>
+                {feedDetail.exchange_info?.exchange_type}
+              </Type>
+            </ProfileImage>
+            <ProfileInfo>
+              <ProfileInfoMe>
+                <p className="body1">
+                  {feedDetail.user_info?.nickname || "User"} /{" "}
+                  {feedDetail.user_info?.gender}
+                </p>
+                {isOwner && (
+                  <Me>
+                    <span className="body3">나</span>
+                  </Me>
+                )}
+              </ProfileInfoMe>
+              <h2>
+                {feedDetail.exchange_info?.country || "미국"}{" "}
+                {feedDetail.exchange_info?.university || "University"}
+              </h2>
               <p className="body1">
-                {feedDetail.user_info?.nickname || "User"} / {feedDetail.user_info?.gender}
+                {feedDetail.exchange_info?.exchange_semester || "semester"} (
+                {feedDetail.exchange_info?.exchange_period || "period"})
               </p>
-              {isOwner && (
-                <Me>
-                  <span className="body3">나</span>
-                </Me>
-              )}
-            </ProfileInfoMe>
-            <h2>
-              {feedDetail.exchange_info?.country || "미국"} {feedDetail.exchange_info?.university || "University"}
-            </h2>
-            <p className="body1">
-              {feedDetail.exchange_info?.exchange_semester || "semester"} ({feedDetail.exchange_info?.exchange_period || "period"})
-            </p>
-          </ProfileInfo>
-          <BtnBox>
-            <LikeCircleButton 
-              liked={liked}
-              likeCount={likeCount}
-              onToggle={handleToggleLike}
-              disabled={isOwner}
-            />
-            <ScrapCircleButton 
-              scrapped={scrapped}
-              scrapCount={scrapCount}
-              onToggle={handleToggleScrap}
-              disabled={isOwner}
-            />
-          </BtnBox>
-        </ProfileBox>
+            </ProfileInfo>
+            <BtnBox>
+              <LikeCircleButton
+                liked={liked}
+                likeCount={likeCount}
+                onToggle={handleToggleLike}
+                disabled={isOwner}
+              />
+              <ScrapCircleButton
+                scrapped={scrapped}
+                scrapCount={scrapCount}
+                onToggle={handleToggleScrap}
+                disabled={isOwner}
+              />
+            </BtnBox>
+          </ProfileBox>
 
-        {/* ————————————————————— 세부 프로필 ————————————————————— */}
-        <Section1Header>
-          <SectionTitle>세부 프로필</SectionTitle>
-          {isOwner && (
-            editMode ? (
-            <h3
-              onClick={toggleEdit}
-              style={{ cursor: 'pointer', color: 'var(--blue)' }}
-            >
-              저장
-            </h3>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="19"
-              height="22"
-              viewBox="0 0 19 22"
-              fill='none'
-              onClick={toggleEdit}
-              style={{ cursor: 'pointer' }}
-            >
-              <path fillRule="evenodd" clipRule="evenodd" d="M16.768 0.87099C16.2101 0.313295 15.4536 0 14.6648 0C13.8759 0 13.1194 0.313295 12.5616 0.87099L11.8605 1.57305L16.7689 6.48152L17.469 5.78045C17.7453 5.50421 17.9645 5.17624 18.114 4.81528C18.2635 4.45433 18.3405 4.06745 18.3405 3.67675C18.3405 3.28605 18.2635 2.89917 18.114 2.53822C17.9645 2.17726 17.7453 1.84929 17.469 1.57305L16.768 0.87099ZM15.3658 7.88366L10.4574 2.97519L1.44362 11.9899C1.24637 12.1872 1.10858 12.436 1.04598 12.7078L0.0256175 17.1255C-0.0124018 17.2895 -0.0080408 17.4604 0.0382895 17.6223C0.0846199 17.7841 0.171394 17.9315 0.290436 18.0506C0.409478 18.1696 0.556867 18.2564 0.718717 18.3027C0.880567 18.349 1.05155 18.3534 1.21555 18.3154L5.63416 17.296C5.90567 17.2332 6.15409 17.0955 6.3511 16.8984L15.3658 7.88366Z" fill="#115BCA" />
-            </svg>
-          )
-        )}
-        </Section1Header>
-        {editMode ? (
-          <Section>
-            <FormGrid>
-              <Required>*필수입력</Required>
-              <FormRow>
-                <Label>한국에서의 월 지출</Label>
-                <InputWrapper2>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[0] = el)}
-                    onKeyDown={(e) => handleEnter(e, 1)}
-                    customStyle={`height: 2.3rem; font-size: 0.75rem; padding: 0 1rem;`}
-                    placeholder="금액을 입력해주세요"
-                    value={formData.monthly_spend_in_korea}
-                    onChange={handleMonthlySpendChange}
+          {/* ————————————————————— 세부 프로필 ————————————————————— */}
+          <Section1Header>
+            <SectionTitle>세부 프로필</SectionTitle>
+            {isOwner &&
+              (editMode ? (
+                <h3
+                  onClick={toggleEdit}
+                  style={{ cursor: "pointer", color: "var(--blue)" }}
+                >
+                  저장
+                </h3>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="19"
+                  height="22"
+                  viewBox="0 0 19 22"
+                  fill="none"
+                  onClick={toggleEdit}
+                  style={{ cursor: "pointer" }}
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M16.768 0.87099C16.2101 0.313295 15.4536 0 14.6648 0C13.8759 0 13.1194 0.313295 12.5616 0.87099L11.8605 1.57305L16.7689 6.48152L17.469 5.78045C17.7453 5.50421 17.9645 5.17624 18.114 4.81528C18.2635 4.45433 18.3405 4.06745 18.3405 3.67675C18.3405 3.28605 18.2635 2.89917 18.114 2.53822C17.9645 2.17726 17.7453 1.84929 17.469 1.57305L16.768 0.87099ZM15.3658 7.88366L10.4574 2.97519L1.44362 11.9899C1.24637 12.1872 1.10858 12.436 1.04598 12.7078L0.0256175 17.1255C-0.0124018 17.2895 -0.0080408 17.4604 0.0382895 17.6223C0.0846199 17.7841 0.171394 17.9315 0.290436 18.0506C0.409478 18.1696 0.556867 18.2564 0.718717 18.3027C0.880567 18.349 1.05155 18.3534 1.21555 18.3154L5.63416 17.296C5.90567 17.2332 6.15409 17.0955 6.3511 16.8984L15.3658 7.88366Z"
+                    fill="#115BCA"
                   />
-                  <p className="body2">원</p>
-                </InputWrapper2>
-              </FormRow>
+                </svg>
+              ))}
+          </Section1Header>
+          {editMode ? (
+            <Section>
+              <FormGrid>
+                <Required>*필수입력</Required>
+                <FormRow>
+                  <Label>한국에서의 월 지출</Label>
+                  <InputWrapper2>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[0] = el)}
+                      onKeyDown={(e) => handleEnter(e, 1)}
+                      customStyle={`height: 2.3rem; font-size: 0.75rem; padding: 0 1rem;`}
+                      placeholder="금액을 입력해주세요"
+                      value={formData.monthly_spend_in_korea}
+                      onChange={handleMonthlySpendChange}
+                    />
+                    <p className="body2">원</p>
+                  </InputWrapper2>
+                </FormRow>
 
-              <Optional>* 선택입력</Optional>
-              <FormRow>
-                <Label>식사</Label>
-                <ButtonGroup1>
-                  {["1", "2", "3"].map((freq, idx) => (
-                    <CircleButton
-                      ref={(el) => (inputRefs.current[1 + idx] = el)}
-                      onKeyDown={(e) => handleEnter(e, 4)}
-                      key={freq}
-                      onClick={() => handleInputChange("meal_frequency", freq)}
-                      customStyle={`
+                <Optional>* 선택입력</Optional>
+                <FormRow>
+                  <Label>식사</Label>
+                  <ButtonGroup1>
+                    {["1", "2", "3"].map((freq, idx) => (
+                      <CircleButton
+                        ref={(el) => (inputRefs.current[1 + idx] = el)}
+                        onKeyDown={(e) => handleEnter(e, 4)}
+                        key={freq}
+                        onClick={() =>
+                          handleInputChange("meal_frequency", freq)
+                        }
+                        customStyle={`
                       font-size: 0.85rem;
                       height: 2.15625rem;
                       background-color: ${
@@ -465,187 +475,187 @@ const AcctSummaryPage = () => {
                           : "1px solid var(--gray, #A5A5A5)"
                       };
                     `}
-                    >
-                      하루 {freq}회
-                    </CircleButton>
-                  ))}
-                </ButtonGroup1>
-              </FormRow>
+                      >
+                        하루 {freq}회
+                      </CircleButton>
+                    ))}
+                  </ButtonGroup1>
+                </FormRow>
 
-              <FormRow>
-                <Label>외식 및 배달음식 소비</Label>
-                <InputWrapper>
-                  <p className="body2">주</p>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[4] = el)}
-                    onKeyDown={(e) => handleEnter(e, 5)}
-                    customStyle={`
+                <FormRow>
+                  <Label>외식 및 배달음식 소비</Label>
+                  <InputWrapper>
+                    <p className="body2">주</p>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[4] = el)}
+                      onKeyDown={(e) => handleEnter(e, 5)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 2.5rem;
                     text-align: right;
                     `}
-                    placeholder=""
-                    value={formData.dineout_per_week}
-                    onChange={(e) =>
-                      handleInputChange("dineout_per_week", e.target.value)
-                    }
-                  />
-                  <p className="body2">회</p>
-                </InputWrapper>
-              </FormRow>
+                      placeholder=""
+                      value={formData.dineout_per_week}
+                      onChange={(e) =>
+                        handleInputChange("dineout_per_week", e.target.value)
+                      }
+                    />
+                    <p className="body2">회</p>
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>커피 등 음료 소비</Label>
-                <InputWrapper>
-                  <p className="body2">주</p>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[5] = el)}
-                    onKeyDown={(e) => handleEnter(e, 6)}
-                    customStyle={`
+                <FormRow>
+                  <Label>커피 등 음료 소비</Label>
+                  <InputWrapper>
+                    <p className="body2">주</p>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[5] = el)}
+                      onKeyDown={(e) => handleEnter(e, 6)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 2.5rem;
                     text-align: right;
                     `}
-                    placeholder=""
-                    value={formData.coffee_per_week}
-                    onChange={(e) =>
-                      handleInputChange("coffee_per_week", e.target.value)
-                    }
-                  />
-                  <p className="body2">회</p>
-                </InputWrapper>
-              </FormRow>
+                      placeholder=""
+                      value={formData.coffee_per_week}
+                      onChange={(e) =>
+                        handleInputChange("coffee_per_week", e.target.value)
+                      }
+                    />
+                    <p className="body2">회</p>
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>흡연</Label>
-                <InputWrapper>
-                  <p className="body2">하루</p>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[6] = el)}
-                    onKeyDown={(e) => handleEnter(e, 7)}
-                    customStyle={`
+                <FormRow>
+                  <Label>흡연</Label>
+                  <InputWrapper>
+                    <p className="body2">하루</p>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[6] = el)}
+                      onKeyDown={(e) => handleEnter(e, 7)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 2.5rem;
                     text-align: right;
                     `}
-                    placeholder=""
-                    value={formData.smoking_per_day}
-                    onChange={(e) =>
-                      handleInputChange("smoking_per_day", e.target.value)
-                    }
-                  />
-                  <p className="body2">회</p>
-                </InputWrapper>
-              </FormRow>
+                      placeholder=""
+                      value={formData.smoking_per_day}
+                      onChange={(e) =>
+                        handleInputChange("smoking_per_day", e.target.value)
+                      }
+                    />
+                    <p className="body2">회</p>
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>음주</Label>
-                <InputWrapper>
-                  <p className="body2">주</p>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[7] = el)}
-                    onKeyDown={(e) => handleEnter(e, 8)}
-                    customStyle={`
+                <FormRow>
+                  <Label>음주</Label>
+                  <InputWrapper>
+                    <p className="body2">주</p>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[7] = el)}
+                      onKeyDown={(e) => handleEnter(e, 8)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 2.5rem;
                     text-align: right;
                     `}
-                    placeholder=""
-                    value={formData.drinking_per_week}
-                    onChange={(e) =>
-                      handleInputChange("drinking_per_week", e.target.value)
-                    }
-                  />
-                  <p className="body2">회</p>
-                </InputWrapper>
-              </FormRow>
+                      placeholder=""
+                      value={formData.drinking_per_week}
+                      onChange={(e) =>
+                        handleInputChange("drinking_per_week", e.target.value)
+                      }
+                    />
+                    <p className="body2">회</p>
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>쇼핑</Label>
-                <InputWrapper>
-                  <p className="body2">월</p>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[8] = el)}
-                    onKeyDown={(e) => handleEnter(e, 9)}
-                    customStyle={`
+                <FormRow>
+                  <Label>쇼핑</Label>
+                  <InputWrapper>
+                    <p className="body2">월</p>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[8] = el)}
+                      onKeyDown={(e) => handleEnter(e, 9)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 2.5rem;
                     text-align: right;
                     `}
-                    placeholder=""
-                    value={formData.shopping_per_month}
-                    onChange={(e) =>
-                      handleInputChange("shopping_per_month", e.target.value)
-                    }
-                  />
-                  <p className="body2">회</p>
-                </InputWrapper>
-              </FormRow>
+                      placeholder=""
+                      value={formData.shopping_per_month}
+                      onChange={(e) =>
+                        handleInputChange("shopping_per_month", e.target.value)
+                      }
+                    />
+                    <p className="body2">회</p>
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>여가 및 문화생활 소비</Label>
-                <InputWrapper>
-                  <p className="body2">월</p>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[9] = el)}
-                    onKeyDown={(e) => handleEnter(e, 10)}
-                    customStyle={`
+                <FormRow>
+                  <Label>여가 및 문화생활 소비</Label>
+                  <InputWrapper>
+                    <p className="body2">월</p>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[9] = el)}
+                      onKeyDown={(e) => handleEnter(e, 10)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 2.5rem;
                     text-align: right;
                     `}
-                    placeholder=""
-                    value={formData.culture_per_month}
-                    onChange={(e) =>
-                      handleInputChange("culture_per_month", e.target.value)
-                    }
-                  />
-                  <p className="body2">회</p>
-                </InputWrapper>
-              </FormRow>
+                      placeholder=""
+                      value={formData.culture_per_month}
+                      onChange={(e) =>
+                        handleInputChange("culture_per_month", e.target.value)
+                      }
+                    />
+                    <p className="body2">회</p>
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>거주유형</Label>
-                <InputWrapper>
-                  <Inputfield
-                    ref={(el) => (inputRefs.current[10] = el)}
-                    onKeyDown={(e) => handleEnter(e, 11)}
-                    customStyle={`
+                <FormRow>
+                  <Label>거주유형</Label>
+                  <InputWrapper>
+                    <Inputfield
+                      ref={(el) => (inputRefs.current[10] = el)}
+                      onKeyDown={(e) => handleEnter(e, 11)}
+                      customStyle={`
                     height: 2.3rem;
                     font-size: 0.75rem;
                     font-weight: 400;
                     padding: 0 1rem;
                   `}
-                    type="text"
-                    placeholder="거주 유형을 직접 입력해주세요"
-                    value={formData.residence_type}
-                    onChange={(e) =>
-                      handleInputChange("residence_type", e.target.value)
-                    }
-                  />
-                </InputWrapper>
-              </FormRow>
+                      type="text"
+                      placeholder="거주 유형을 직접 입력해주세요"
+                      value={formData.residence_type}
+                      onChange={(e) =>
+                        handleInputChange("residence_type", e.target.value)
+                      }
+                    />
+                  </InputWrapper>
+                </FormRow>
 
-              <FormRow>
-                <Label>통학 여부</Label>
-                <ButtonGroup2>
-                  <CircleButton
-                    ref={(el) => (inputRefs.current[11] = el)}
-                    onKeyDown={(e) => handleEnter(e, 12)}
-                    onClick={() => handleInputChange("commute", true)}
-                    customStyle={`
+                <FormRow>
+                  <Label>통학 여부</Label>
+                  <ButtonGroup2>
+                    <CircleButton
+                      ref={(el) => (inputRefs.current[11] = el)}
+                      onKeyDown={(e) => handleEnter(e, 12)}
+                      onClick={() => handleInputChange("commute", true)}
+                      customStyle={`
                     width: 90%;
                     height: 2.15625rem;
                     font-size: 0.85rem;
@@ -665,14 +675,14 @@ const AcctSummaryPage = () => {
                         : "1px solid var(--gray, #A5A5A5)"
                     };
                   `}
-                  >
-                    예
-                  </CircleButton>
-                  <CircleButton
-                    ref={(el) => (inputRefs.current[12] = el)}
-                    onKeyDown={(e) => handleEnter(e, 13)}
-                    onClick={() => handleInputChange("commute", false)}
-                    customStyle={`
+                    >
+                      예
+                    </CircleButton>
+                    <CircleButton
+                      ref={(el) => (inputRefs.current[12] = el)}
+                      onKeyDown={(e) => handleEnter(e, 13)}
+                      onClick={() => handleInputChange("commute", false)}
+                      customStyle={`
                       width: 100%;
                       height: 2.15625rem;
                       font-size: 0.85rem;
@@ -692,139 +702,191 @@ const AcctSummaryPage = () => {
                         : "1px solid var(--gray, #A5A5A5)"
                     };
                   `}
-                  >
-                    아니오
-                  </CircleButton>
-                </ButtonGroup2>
-              </FormRow>
-            </FormGrid>
-          </Section>
-        ) : (
-          <Section1>
-            <FormGrid>
-              {feedDetail.lifestyle?.monthly_spend_in_korea && (
-                <FormRow>
-                  <Label>한국에서의 월 지출</Label>
-                  <DisplayValue>{formatNumberLocale(feedDetail.lifestyle.monthly_spend_in_korea)}원</DisplayValue>
+                    >
+                      아니오
+                    </CircleButton>
+                  </ButtonGroup2>
                 </FormRow>
-              )}
-              {feedDetail.lifestyle?.meal_frequency && (
-                <FormRow>
-                  <Label>식사</Label>
-                  <DisplayValue>{feedDetail.lifestyle.meal_frequency}</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.dineout_per_week !== undefined && feedDetail.lifestyle?.dineout_per_week !== null && (
-                <FormRow>
-                  <Label>외식 및 배달음식 소비</Label>
-                  <DisplayValue>주 {feedDetail.lifestyle.dineout_per_week}회</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.coffee_per_week !== undefined && feedDetail.lifestyle?.coffee_per_week !== null && (
-                <FormRow>
-                  <Label>커피 등 음료 소비</Label>
-                  <DisplayValue>주 {feedDetail.lifestyle.coffee_per_week}회</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.smoking_per_day !== undefined && feedDetail.lifestyle?.smoking_per_day !== null && (
-                <FormRow>
-                  <Label>흡연</Label>
-                  <DisplayValue>하루 {feedDetail.lifestyle.smoking_per_day}회</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.drinking_per_week !== undefined && feedDetail.lifestyle?.drinking_per_week !== null && (
-                <FormRow>
-                  <Label>음주</Label>
-                  <DisplayValue>주 {feedDetail.lifestyle.drinking_per_week}회</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.shopping_per_month !== undefined && feedDetail.lifestyle?.shopping_per_month !== null && (
-                <FormRow>
-                  <Label>쇼핑</Label>
-                  <DisplayValue>월 {feedDetail.lifestyle.shopping_per_month}회</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.culture_per_month !== undefined && feedDetail.lifestyle?.culture_per_month !== null && (
-                <FormRow>
-                  <Label>여가 및 문화생활 소비</Label>
-                  <DisplayValue>월 {feedDetail.lifestyle.culture_per_month}회</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.residence_type && (
-                <FormRow>
-                  <Label>거주유형</Label>
-                  <DisplayValue>{feedDetail.lifestyle.residence_type}</DisplayValue>
-                </FormRow>
-              )}
-              {feedDetail.lifestyle?.commute !== undefined && feedDetail.lifestyle?.commute !== null && (
-                <FormRow>
-                  <Label>통학 여부</Label>
-                  <DisplayValue>{feedDetail.lifestyle.commute ? "예" : "아니오"}</DisplayValue>
-                </FormRow>
-              )}
-            </FormGrid>
-          </Section1>
-        )}
+              </FormGrid>
+            </Section>
+          ) : (
+            <Section1>
+              <FormGrid>
+                {feedDetail.lifestyle?.monthly_spend_in_korea && (
+                  <FormRow>
+                    <Label>한국에서의 월 지출</Label>
+                    <DisplayValue>
+                      {formatNumberLocale(
+                        feedDetail.lifestyle.monthly_spend_in_korea
+                      )}
+                      원
+                    </DisplayValue>
+                  </FormRow>
+                )}
+                {feedDetail.lifestyle?.meal_frequency && (
+                  <FormRow>
+                    <Label>식사</Label>
+                    <DisplayValue>
+                      {feedDetail.lifestyle.meal_frequency}
+                    </DisplayValue>
+                  </FormRow>
+                )}
+                {feedDetail.lifestyle?.dineout_per_week !== undefined &&
+                  feedDetail.lifestyle?.dineout_per_week !== null && (
+                    <FormRow>
+                      <Label>외식 및 배달음식 소비</Label>
+                      <DisplayValue>
+                        주 {feedDetail.lifestyle.dineout_per_week}회
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+                {feedDetail.lifestyle?.coffee_per_week !== undefined &&
+                  feedDetail.lifestyle?.coffee_per_week !== null && (
+                    <FormRow>
+                      <Label>커피 등 음료 소비</Label>
+                      <DisplayValue>
+                        주 {feedDetail.lifestyle.coffee_per_week}회
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+                {feedDetail.lifestyle?.smoking_per_day !== undefined &&
+                  feedDetail.lifestyle?.smoking_per_day !== null && (
+                    <FormRow>
+                      <Label>흡연</Label>
+                      <DisplayValue>
+                        하루 {feedDetail.lifestyle.smoking_per_day}회
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+                {feedDetail.lifestyle?.drinking_per_week !== undefined &&
+                  feedDetail.lifestyle?.drinking_per_week !== null && (
+                    <FormRow>
+                      <Label>음주</Label>
+                      <DisplayValue>
+                        주 {feedDetail.lifestyle.drinking_per_week}회
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+                {feedDetail.lifestyle?.shopping_per_month !== undefined &&
+                  feedDetail.lifestyle?.shopping_per_month !== null && (
+                    <FormRow>
+                      <Label>쇼핑</Label>
+                      <DisplayValue>
+                        월 {feedDetail.lifestyle.shopping_per_month}회
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+                {feedDetail.lifestyle?.culture_per_month !== undefined &&
+                  feedDetail.lifestyle?.culture_per_month !== null && (
+                    <FormRow>
+                      <Label>여가 및 문화생활 소비</Label>
+                      <DisplayValue>
+                        월 {feedDetail.lifestyle.culture_per_month}회
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+                {feedDetail.lifestyle?.residence_type && (
+                  <FormRow>
+                    <Label>거주유형</Label>
+                    <DisplayValue>
+                      {feedDetail.lifestyle.residence_type}
+                    </DisplayValue>
+                  </FormRow>
+                )}
+                {feedDetail.lifestyle?.commute !== undefined &&
+                  feedDetail.lifestyle?.commute !== null && (
+                    <FormRow>
+                      <Label>통학 여부</Label>
+                      <DisplayValue>
+                        {feedDetail.lifestyle.commute ? "예" : "아니오"}
+                      </DisplayValue>
+                    </FormRow>
+                  )}
+              </FormGrid>
+            </Section1>
+          )}
 
-        {/* ————————————————————— 가계부 요약본  ————————————————————— */}
-        <Section2>
-          <Section2Header>
-            <TitleWrapper>
-              <Username>{feedDetail.user_info?.nickname || "사용자"}</Username>
-              <SectionTitle>님의 가계부 요약본</SectionTitle>
-            </TitleWrapper>
-            <Notice>* 기록시점의 환율 기준</Notice>
-          </Section2Header>
-          <EntireGrid>
-            <CategorySection>
-              <CategoryLabel>
-                <CategoryText>한달평균생활비</CategoryText>
-                <CategoryAmount>
-                  {currencySymbolMap[feedDetail.living_expense_foreign_currency]}
-                  {formatAmount(feedDetail.living_expense_summary?.foreign_amount)}
-                  {" "}
-                  ({formatKRW(feedDetail.living_expense_summary?.krw_amount)})
-                </CategoryAmount>
-              </CategoryLabel>
-              <CategoryGrid>
-                {livingCategories.map((category) => (
-                  <CategoryCard key={category.code} categoryData={category} showBudgetStatus={false} />
-                ))}
-              </CategoryGrid>
-            </CategorySection>
-
-            <BasicCostSection>
-              <BasicCostLabel>
-                <BasicCostText>기본파견비용</BasicCostText>
-                <BasicCostAmount>
-                  {currencySymbolMap[feedDetail.living_expense_foreign_currency]}
-                  {formatAmount(feedDetail.base_dispatch_summary?.foreign_amount)}
-                  {" "}
-                  ({formatKRW(feedDetail.base_dispatch_summary?.krw_amount)})
-                </BasicCostAmount>
-              </BasicCostLabel>
-              <BasicCostGrid>
-                {baseCategories.map((cost) => (
-                  <CategoryCard key={cost.code} categoryData={cost} showBudgetStatus={false} />
-                ))}
-              </BasicCostGrid>
-            </BasicCostSection>
-          </EntireGrid>
-        </Section2>
-
-        {/* ————————————————————— 한줄평 ————————————————————— */}
-        {editMode ? (
-          <FormRow2 $fullWidth>
+          {/* ————————————————————— 가계부 요약본  ————————————————————— */}
+          <Section2>
             <Section2Header>
               <TitleWrapper>
-                <Username>{profile?.name || "사용자"}</Username>
-                <SectionTitle>님이 남긴 한 마디</SectionTitle>
+                <Username>
+                  {feedDetail.user_info?.nickname || "사용자"}
+                </Username>
+                <SectionTitle>님의 가계부 요약본</SectionTitle>
               </TitleWrapper>
-              <OptionalNotice>* 선택입력</OptionalNotice>
+              <Notice>* 기록시점의 환율 기준</Notice>
             </Section2Header>
-            <Inputfield
-              ref={(el) => (inputRefs.current[13] = el)}
-              customStyle={`
+            <EntireGrid>
+              <CategorySection>
+                <CategoryLabel>
+                  <CategoryText>한달평균생활비</CategoryText>
+                  <CategoryAmount>
+                    {
+                      currencySymbolMap[
+                        feedDetail.living_expense_foreign_currency
+                      ]
+                    }
+                    {formatAmount(
+                      feedDetail.living_expense_summary?.foreign_amount
+                    )}{" "}
+                    ({formatKRW(feedDetail.living_expense_summary?.krw_amount)})
+                  </CategoryAmount>
+                </CategoryLabel>
+                <CategoryGrid>
+                  {livingCategories.map((category) => (
+                    <CategoryCard
+                      key={category.code}
+                      categoryData={category}
+                      showBudgetStatus={false}
+                      showCurrentStatus={false}
+                    />
+                  ))}
+                </CategoryGrid>
+              </CategorySection>
+
+              <BasicCostSection>
+                <BasicCostLabel>
+                  <BasicCostText>기본파견비용</BasicCostText>
+                  <BasicCostAmount>
+                    {
+                      currencySymbolMap[
+                        feedDetail.living_expense_foreign_currency
+                      ]
+                    }
+                    {formatAmount(
+                      feedDetail.base_dispatch_summary?.foreign_amount
+                    )}{" "}
+                    ({formatKRW(feedDetail.base_dispatch_summary?.krw_amount)})
+                  </BasicCostAmount>
+                </BasicCostLabel>
+                <BasicCostGrid>
+                  {baseCategories.map((cost) => (
+                    <CategoryCard
+                      key={cost.code}
+                      categoryData={cost}
+                      showBudgetStatus={false}
+                      showCurrentStatus={false}
+                    />
+                  ))}
+                </BasicCostGrid>
+              </BasicCostSection>
+            </EntireGrid>
+          </Section2>
+
+          {/* ————————————————————— 한줄평 ————————————————————— */}
+          {editMode ? (
+            <FormRow2 $fullWidth>
+              <Section2Header>
+                <TitleWrapper>
+                  <Username>{profile?.name || "사용자"}</Username>
+                  <SectionTitle>님이 남긴 한 마디</SectionTitle>
+                </TitleWrapper>
+                <OptionalNotice>* 선택입력</OptionalNotice>
+              </Section2Header>
+              <Inputfield
+                ref={(el) => (inputRefs.current[13] = el)}
+                customStyle={`
                 width: 100%;
                 height: 4.55456rem;
                 flex-shrink: 0;
@@ -833,27 +895,31 @@ const AcctSummaryPage = () => {
                 background: var(--text-input, #FCFCFC);
                 padding: 0 3.6rem;
               `}
-              type="text"
-              placeholder="예: 교통비가 생각보다 많이 들었어요!"
-              value={formData.summary_note}
-              onChange={(e) => handleInputChange("summary_note", e.target.value)}
-            />
-          </FormRow2>
-        ) : (
-          feedDetail.lifestyle?.summary_note && (
-            <Section3>
-              <Section2Header>
-                <TitleWrapper>
-                  <Username>{feedDetail.user_info?.nickname || "사용자"}</Username>
-                  <SectionTitle>님이 남긴 한 마디</SectionTitle>
-                </TitleWrapper>
-              </Section2Header>
-              <DisplayNote>{feedDetail.lifestyle.summary_note}</DisplayNote>
-            </Section3>
-          )
-        )}
-      </ContentWrapper>
-    </PageWrapper>
+                type="text"
+                placeholder="예: 교통비가 생각보다 많이 들었어요!"
+                value={formData.summary_note}
+                onChange={(e) =>
+                  handleInputChange("summary_note", e.target.value)
+                }
+              />
+            </FormRow2>
+          ) : (
+            feedDetail.lifestyle?.summary_note && (
+              <Section3>
+                <Section2Header>
+                  <TitleWrapper>
+                    <Username>
+                      {feedDetail.user_info?.nickname || "사용자"}
+                    </Username>
+                    <SectionTitle>님이 남긴 한 마디</SectionTitle>
+                  </TitleWrapper>
+                </Section2Header>
+                <DisplayNote>{feedDetail.lifestyle.summary_note}</DisplayNote>
+              </Section3>
+            )
+          )}
+        </ContentWrapper>
+      </PageWrapper>
     </>
   );
 };
@@ -954,9 +1020,9 @@ const Type = styled.div`
   align-items: center;
   justify-content: center;
   background: ${({ $exchangeType }) => {
-    if ($exchangeType === "교환학생") return "var(--exchange)";       // 교환학생
-    if ($exchangeType === "방문학생") return "var(--visiting)";       // 방문학생
-    return "var(--gray)";                                       // 기타(OT)
+    if ($exchangeType === "교환학생") return "var(--exchange)"; // 교환학생
+    if ($exchangeType === "방문학생") return "var(--visiting)"; // 방문학생
+    return "var(--gray)"; // 기타(OT)
   }};
   border-radius: 2.5rem;
   font-family: "Pretendard Variable";
@@ -1259,7 +1325,7 @@ const CategoryGrid = styled.div`
 `;
 
 const CategorySection = styled.div`
-  width: 100%;  
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1324,4 +1390,3 @@ const DisplayNote = styled.div`
   font-size: 0.925rem;
   font-weight: 500;
 `;
-  
