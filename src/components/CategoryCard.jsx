@@ -145,7 +145,7 @@ const CategoryCard = ({ categoryData, showBudgetStatus = true }) => {
 
 
   // FLIGHT, INSURANCE, VISA, TUITION에서는 예산비교 메시지 숨김
-  const hideBudgetCompare = ["FLIGHT", "INSURANCE", "VISA", "TUITION"].includes(categoryData.code);
+  const hideBudgetCompare = ["airfare", "insurance", "visa", "tuition"].includes(categoryData.code);
 
   const getBudgetMessage = () => {
     if (hideBudgetCompare) return "";

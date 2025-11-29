@@ -788,7 +788,7 @@ const AcctSummaryPage = () => {
               </CategoryLabel>
               <CategoryGrid>
                 {livingCategories.map((category) => (
-                  <CategoryCard key={category.code} categoryData={category} />
+                  <CategoryCard key={category.code} categoryData={category} showBudgetStatus={false} />
                 ))}
               </CategoryGrid>
             </CategorySection>
@@ -805,7 +805,7 @@ const AcctSummaryPage = () => {
               </BasicCostLabel>
               <BasicCostGrid>
                 {baseCategories.map((cost) => (
-                  <CategoryCard key={cost.code} categoryData={cost} />
+                  <CategoryCard key={cost.code} categoryData={cost} showBudgetStatus={false} />
                 ))}
               </BasicCostGrid>
             </BasicCostSection>

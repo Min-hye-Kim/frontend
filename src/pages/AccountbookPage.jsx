@@ -486,7 +486,7 @@ const AccountbookPage = () => {
         {/* 카테고리별 카드 */}
         <CategoryCardsGrid>
           {displayCategoryData.map((category) => (
-            <CategoryCard key={category.code} categoryData={category} />
+            <CategoryCard key={category.code} categoryData={category} showBudgetStatus={true} />
           ))}
         </CategoryCardsGrid>
         <BasicCostSection>
@@ -525,7 +525,7 @@ const AccountbookPage = () => {
                 budget_diff: null,
               },
             ].map((cost) => (
-              <CategoryCard key={cost.code} categoryData={cost} />
+              <CategoryCard key={cost.code} categoryData={cost} showBudgetStatus={true} />
             ))}
           </BasicCostGrid>
         </BasicCostSection>
