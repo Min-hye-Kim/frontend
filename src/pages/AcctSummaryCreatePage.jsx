@@ -548,7 +548,7 @@ const AcctSummaryCreatePage = () => {
                 {summaryData &&
                   [
                     {
-                      code: "flight",
+                      code: "airfare",
                       label: "항공권",
                       ...summaryData.base_dispatch_cost.flight,
                       budget_diff: null,
